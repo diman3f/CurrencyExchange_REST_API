@@ -6,53 +6,68 @@ import org.pet.entity.CurrencyEntity;
 import org.pet.utils.ConnectionManager;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class CurrencyDbManager implements DataAccessObject<CurrencyEntity> {
+public class CurrencyDbManager {
 
     public CurrencyDbManager() {
     }
 
-    public CurrencyDTO readEntity(int id) {
+
+    public List<CurrencyDTO> findAllEntities() {
         CurrencyDTO currencyDTO = new CurrencyDTO();
+        List<CurrencyDTO> currencies = new ArrayList<>();
 
-            CurrencyEntity currencyEntity = getEntity(id);
+        List<CurrencyEntity> currencyEntity = findAllEntity();
 
-            currencyDTO.setCode(currencyEntity.getCode());
-            currencyDTO.setFull_name(currencyEntity.getFull_name());
-            currencyDTO.setSign(currencyEntity.getSign());
-
-        return currencyDTO;
+        for (CurrencyEntity entity : currencyEntity) {
+            currencies.add(toDTO(entity));
+        }
+        return currencies;
     }
 
-
-    @Override
-    public CurrencyEntity getEntity(int id) {
+    private List<CurrencyEntity> findAllEntity() {
+        List<CurrencyEntity> currencyEntities = new ArrayList<>();
         String sql = """
-                SELECT id, code, full_name, sign FROM Currencies
-                WHERE id = ?;
+                SELECT id, code, full_name, sign FROM Currencies;
                 """;
-        CurrencyEntity currencyEntity = new CurrencyEntity();
         Connection connection = ConnectionManager.open();
         try {
             var prepareStatement = connection.prepareStatement(sql);
-            prepareStatement.setInt(1, id);
             var resultSet = prepareStatement.executeQuery();
-
             while (resultSet.next()) {
-                currencyEntity.setId(resultSet.getInt("id"));
-                currencyEntity.setCode(resultSet.getString("code"));
-                currencyEntity.setFull_name(resultSet.getString("full_name"));
-                currencyEntity.setSign(resultSet.getString("sign"));
+                CurrencyEntity currencyEntity = creatEntity(resultSet);
+                currencyEntities.add(currencyEntity);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return currencyEntities;
+    }
+
+
+    private CurrencyEntity creatEntity(ResultSet resultSet) {
+        CurrencyEntity currencyEntity = new CurrencyEntity();
+        try {
+            currencyEntity.setId(resultSet.getInt("id"));
+            currencyEntity.setCode(resultSet.getString("code"));
+            currencyEntity.setFull_name(resultSet.getString("full_name"));
+            currencyEntity.setSign(resultSet.getString("sign"));
             return currencyEntity;
         } catch (SQLException e) {
+            e.printStackTrace();
         }
         return currencyEntity;
     }
 
-    @Override
-    public CurrencyEntity create() {
-        return null;
+    private CurrencyDTO toDTO(CurrencyEntity currencyEntity) {
+        CurrencyDTO currencyDTO = new CurrencyDTO();
+        currencyDTO.setCode(currencyEntity.getCode());
+        currencyDTO.setFull_name(currencyEntity.getFull_name());
+        currencyDTO.setSign(currencyEntity.getSign());
+        return currencyDTO;
     }
 }

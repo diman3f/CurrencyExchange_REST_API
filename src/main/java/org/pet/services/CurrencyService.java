@@ -1,25 +1,26 @@
 package org.pet.services;
 
 import org.pet.dao.CurrencyDbManager;
-import org.pet.dao.DataAccessObject;
 import org.pet.dto.CurrencyDTO;
 import org.pet.dto.CurrencyServletDTO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class CurrencyService {
 
     private CurrencyDbManager dataAccessObject = new CurrencyDbManager();
-    int counterRequestCurrency = 0;
 
-    public CurrencyServletDTO getCurrency(int id) {
-        CurrencyDTO currencyDTO = dataAccessObject.readEntity(id);
-        counterRequestCurrency = +currencyDTO.getId();
-       CurrencyServletDTO currencyServletDTO = toDTO(currencyDTO);
+    public List<CurrencyServletDTO> getCurrencies() {
+        List<CurrencyServletDTO> currencyServletDTOs = new ArrayList<>();
 
-       return currencyServletDTO;
-
+        List<CurrencyDTO> currencyEntities = dataAccessObject.findAllEntities();
+        for (CurrencyDTO currencyEntity : currencyEntities) {
+            currencyServletDTOs.add(toDTO(currencyEntity));
+        }
+        return currencyServletDTOs;
     }
-
 
     private CurrencyServletDTO toDTO(CurrencyDTO currencyDTO) {
         CurrencyServletDTO currencyServletDTO = new CurrencyServletDTO();
@@ -30,6 +31,4 @@ public class CurrencyService {
 
         return currencyServletDTO;
     }
-
-
 }

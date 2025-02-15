@@ -11,32 +11,30 @@ import org.pet.services.CurrencyService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
-@WebServlet("/id")
+@WebServlet("/currencies")
 public class CurrencyServlet extends HttpServlet {
 
-
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-    }
 
     public CurrencyServlet() {
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
 
         CurrencyService currencyService = new CurrencyService();
-        CurrencyServletDTO currency = currencyService.getCurrency(id);
         resp.setContentType("text/html");
-        PrintWriter printWriter = resp.getWriter();
+        List<CurrencyServletDTO> currencies = currencyService.getCurrencies();
+        for (CurrencyServletDTO currency : currencies) {
+            PrintWriter printWriter = resp.getWriter();
+            printWriter.println("<td>" + currency.getCode() + "</td>");
+            printWriter.println("<td>" + currency.getFull_name() + "</td>");
+            printWriter.println("<td>" + currency.getSign() + "</td>");
+            printWriter.println("<tr>");
+        }
 
-        printWriter.println("<td>" + currency.getCode() + "</td>");
-        printWriter.println("<td>" + currency.getFull_name() + "</td>");
-        printWriter.println("<td>" + currency.getSign() + "</td>");
-        printWriter.println("<td>" + "привет" + "</td>");
-        printWriter.println("<tr>");
     }
 }
+
+
