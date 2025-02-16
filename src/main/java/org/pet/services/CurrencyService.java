@@ -15,7 +15,7 @@ public class CurrencyService {
     public List<CurrencyServletDTO> getCurrencies() {
         List<CurrencyServletDTO> currencyServletDTOs = new ArrayList<>();
 
-        List<CurrencyDTO> currencyEntities = dataAccessObject.findAllEntities();
+        List<CurrencyDTO> currencyEntities = dataAccessObject.getAllEntities();
         for (CurrencyDTO currencyEntity : currencyEntities) {
             currencyServletDTOs.add(toDTO(currencyEntity));
         }

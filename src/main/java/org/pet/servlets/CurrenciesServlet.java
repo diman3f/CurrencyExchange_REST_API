@@ -14,10 +14,10 @@ import java.io.PrintWriter;
 import java.util.List;
 
 @WebServlet("/currencies")
-public class CurrencyServlet extends HttpServlet {
+public class CurrenciesServlet extends HttpServlet {
 
 
-    public CurrencyServlet() {
+    public CurrenciesServlet() {
     }
 
     @Override

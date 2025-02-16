@@ -17,11 +17,11 @@ public class CurrencyDbManager {
     }
 
 
-    public List<CurrencyDTO> findAllEntities() {
+    public List<CurrencyDTO> getAllEntities() {
         CurrencyDTO currencyDTO = new CurrencyDTO();
         List<CurrencyDTO> currencies = new ArrayList<>();
 
-        List<CurrencyEntity> currencyEntity = findAllEntity();
+        List<CurrencyEntity> currencyEntity = findAllCurrencies();
 
         for (CurrencyEntity entity : currencyEntity) {
             currencies.add(toDTO(entity));
@@ -29,7 +29,7 @@ public class CurrencyDbManager {
         return currencies;
     }
 
-    private List<CurrencyEntity> findAllEntity() {
+    private List<CurrencyEntity> findAllCurrencies() {
         List<CurrencyEntity> currencyEntities = new ArrayList<>();
         String sql = """
                 SELECT id, code, full_name, sign FROM Currencies;
