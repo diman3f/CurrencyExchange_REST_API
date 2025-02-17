@@ -16,14 +16,17 @@ import java.util.List;
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
 
+    private CurrencyService currencyService;
 
-    public CurrenciesServlet() {
+
+    @Override
+    public void init() {
+        currencyService = new CurrencyService();
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        CurrencyService currencyService = new CurrencyService();
         resp.setContentType("text/html");
         List<CurrencyServletDTO> currencies = currencyService.getCurrencies();
         for (CurrencyServletDTO currency : currencies) {
