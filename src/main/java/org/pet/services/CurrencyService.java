@@ -22,6 +22,12 @@ public class CurrencyService {
         return currencyServletDTOs;
     }
 
+    public CurrencyServletDTO getCurrency(CurrencyDTO currencyDTO) {
+        CurrencyDTO dto = dataAccessObject.getEntity(currencyDTO);
+        CurrencyServletDTO currencyServletDTO = toDTO(dto);
+        return currencyServletDTO;
+    }
+
     private CurrencyServletDTO toDTO(CurrencyDTO currencyDTO) {
         CurrencyServletDTO currencyServletDTO = new CurrencyServletDTO();
 

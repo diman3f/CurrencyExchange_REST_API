@@ -36,7 +36,6 @@ public class CurrenciesServlet extends HttpServlet {
             printWriter.println("<td>" + currency.getSign() + "</td>");
             printWriter.println("<tr>");
         }
-
     }
 }
 
