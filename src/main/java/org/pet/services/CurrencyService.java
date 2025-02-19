@@ -28,6 +28,15 @@ public class CurrencyService {
         return currencyServletDTO;
     }
 
+    public CurrencyServletDTO createCurrency(CurrencyDTO currencyDTO) {
+        CurrencyDTO dto = dataAccessObject.createEntity(currencyDTO);
+        CurrencyServletDTO currencyServletDTO = toDTO(dto);
+        return currencyServletDTO;
+    }
+
+
+
+
     private CurrencyServletDTO toDTO(CurrencyDTO currencyDTO) {
         CurrencyServletDTO currencyServletDTO = new CurrencyServletDTO();
 

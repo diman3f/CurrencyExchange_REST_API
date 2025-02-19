@@ -36,6 +36,15 @@ public class CurrencyDbManager {
 
     }
 
+    public CurrencyDTO createEntity(CurrencyDTO currencyDTO) {
+        CurrencyEntity currencyEntity = createCurrency(currencyDTO);
+        CurrencyDTO dto = toDTO(currencyEntity);
+        return dto;
+
+    }
+
+
+
     private CurrencyEntity findCurrencyByCode(CurrencyDTO currencyDTO) {
         CurrencyEntity currencyEntity = toEntity(currencyDTO);
         String code = currencyEntity.getCode();
@@ -76,6 +85,33 @@ public class CurrencyDbManager {
             e.printStackTrace();
         }
         return currencyEntities;
+    }
+
+
+    private CurrencyEntity createCurrency(CurrencyDTO currencyDTO) {
+        CurrencyEntity currencyEntity = toEntity(currencyDTO);
+
+        String code = currencyEntity.getCode();
+        String full_name = currencyEntity.getFull_name();
+        String sign = currencyEntity.getSign();
+
+        String sql = """
+                INSERT INTO  Currencies (code, full_name, sign) 
+                VALUES (?, ?, ?)
+                """;
+        Connection connection = ConnectionManager.open();
+        try {
+            var prepareStatement = connection.prepareStatement(sql);
+            prepareStatement.setString(1, code);
+            prepareStatement.setString(2, full_name);
+            prepareStatement.setString(3, sign);
+            prepareStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return currencyEntity;
+
     }
 
 

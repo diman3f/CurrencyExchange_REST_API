@@ -6,12 +6,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.pet.dto.CurrencyDTO;
 import org.pet.dto.CurrencyServletDTO;
 import org.pet.services.CurrencyService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
@@ -36,6 +38,20 @@ public class CurrenciesServlet extends HttpServlet {
             printWriter.println("<td>" + currency.getSign() + "</td>");
             printWriter.println("<tr>");
         }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        CurrencyDTO dto = new CurrencyDTO();
+        Map<String, String[]> parameterMap = req.getParameterMap();
+        String[] code = parameterMap.get("code");
+        String[] name = parameterMap.get("name");
+        String[] sign = parameterMap.get("sign");
+        dto.setCode(code[0]);
+        dto.setFull_name(name[0]);
+        dto.setSign(sign[0]);
+
+        currencyService.createCurrency(dto);
     }
 }
 
