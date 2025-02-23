@@ -2,6 +2,7 @@ package org.pet.dao;
 
 
 import org.pet.dto.CurrencyDTO;
+import org.pet.dto.ExchangeRateDTO;
 import org.pet.entity.CurrencyEntity;
 import org.pet.utils.ConnectionManager;
 
@@ -42,7 +43,6 @@ public class CurrencyDbManager {
         return dto;
 
     }
-
 
 
     private CurrencyEntity findCurrencyByCode(CurrencyDTO currencyDTO) {
@@ -87,6 +87,35 @@ public class CurrencyDbManager {
         return currencyEntities;
     }
 
+    public List<ExchangeRateDTO> findAllExchangeRate() {
+        List<ExchangeRateDTO> rateDTO = new ArrayList<>();
+        String sql = """
+                SELECT exchangeRates.id,
+                       base.id          AS Id_b,
+                       base.full_name   AS full_name_b,
+                       base.code        AS code_b,
+                       target.id        AS Id_t,
+                       target.full_name AS full_name_t,
+                       target.code      AS code_t,
+                       rate
+                FROM exchangeRates
+                    JOIN Currencies base ON exchangeRates.BaseCurrencyId = base.id
+                    JOIN Currencies target ON exchangeRates.TargetCurrencyId = target.id;
+                """;
+        Connection connection = ConnectionManager.open();
+        try {
+            var prepareStatement = connection.prepareStatement(sql);
+            var resultSet = prepareStatement.executeQuery();
+            while (resultSet.next()) {
+                ExchangeRateDTO dto = createExchangeDTO(resultSet);
+                rateDTO.add(dto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rateDTO;
+    }
+
 
     private CurrencyEntity createCurrency(CurrencyDTO currencyDTO) {
         CurrencyEntity currencyEntity = toEntity(currencyDTO);
@@ -114,7 +143,6 @@ public class CurrencyDbManager {
 
     }
 
-
     private CurrencyEntity creatEntity(ResultSet resultSet) {
         CurrencyEntity currencyEntity = new CurrencyEntity();
         try {
@@ -127,6 +155,33 @@ public class CurrencyDbManager {
             e.printStackTrace();
         }
         return currencyEntity;
+    }
+
+    private ExchangeRateDTO createExchangeDTO(ResultSet resultSet) {
+        ExchangeRateDTO dto = new ExchangeRateDTO();
+        try {
+            CurrencyDTO baseCurrency = new CurrencyDTO();
+            CurrencyDTO targetCurrency = new CurrencyDTO();
+
+            baseCurrency.setId(resultSet.getInt("id_b"));
+            baseCurrency.setFull_name(resultSet.getString("full_name_b"));
+            baseCurrency.setCode(resultSet.getString("code_b"));
+
+            targetCurrency.setId(resultSet.getInt("id_t"));
+            targetCurrency.setFull_name(resultSet.getString("full_name_t"));
+            targetCurrency.setCode(resultSet.getString("code_t"));
+
+            dto.setId(resultSet.getInt("id"));
+            dto.setRate(resultSet.getDouble("Rate"));
+
+            dto.setCurrencyDTOBase(baseCurrency);
+            dto.setCurrencyDTOTarget(targetCurrency);
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return dto;
     }
 
     private CurrencyDTO toDTO(CurrencyEntity currencyEntity) {
