@@ -94,9 +94,11 @@ public class CurrencyDbManager {
                        base.id          AS Id_b,
                        base.full_name   AS full_name_b,
                        base.code        AS code_b,
+                       base.sign        AS sign_b,
                        target.id        AS Id_t,
                        target.full_name AS full_name_t,
                        target.code      AS code_t,
+                       target.sign      AS sign_t,
                        rate
                 FROM exchangeRates
                     JOIN Currencies base ON exchangeRates.BaseCurrencyId = base.id
@@ -166,10 +168,12 @@ public class CurrencyDbManager {
             baseCurrency.setId(resultSet.getInt("id_b"));
             baseCurrency.setFull_name(resultSet.getString("full_name_b"));
             baseCurrency.setCode(resultSet.getString("code_b"));
+            baseCurrency.setSign(resultSet.getString("sign_b"));
 
             targetCurrency.setId(resultSet.getInt("id_t"));
             targetCurrency.setFull_name(resultSet.getString("full_name_t"));
             targetCurrency.setCode(resultSet.getString("code_t"));
+            targetCurrency.setSign(resultSet.getString("sign_t"));
 
             dto.setId(resultSet.getInt("id"));
             dto.setRate(resultSet.getDouble("Rate"));
