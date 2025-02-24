@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/exchangeRates")
-public class ExchangeRateServlet extends HttpServlet {
+public class ExchangeRatesServlet extends HttpServlet {
     private CurrencyDbManager currencyDbManager;
 
     @Override
