@@ -4,6 +4,7 @@ public class ExchangeRateDTO {
     private int id;
     private CurrencyDTO currencyDTOBase;
     private CurrencyDTO currencyDTOTarget;
+    private double Rate;
 
     public int getId() {
         return id;
@@ -47,7 +48,7 @@ public class ExchangeRateDTO {
                 '}';
     }
 
-    private double Rate;
+
 }
 
 

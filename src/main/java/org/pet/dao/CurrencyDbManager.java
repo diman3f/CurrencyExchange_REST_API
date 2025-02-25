@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class CurrencyDbManager {
 
     public CurrencyDbManager() {
@@ -104,7 +105,7 @@ public class CurrencyDbManager {
                     JOIN Currencies base ON exchangeRates.BaseCurrencyId = base.id
                     JOIN Currencies target ON exchangeRates.TargetCurrencyId = target.id;
                 """;
-        Connection connection = ConnectionManager.open();
+        Connection connection = ConnectionManager.open(); //TODO: Зачем тут коннекшин если он есть в сервлете?
         try {
             var prepareStatement = connection.prepareStatement(sql);
             var resultSet = prepareStatement.executeQuery();
@@ -116,6 +117,45 @@ public class CurrencyDbManager {
             e.printStackTrace();
         }
         return rateDTO;
+    }
+
+    public ExchangeRateDTO getExchangeRateBaseCurrencyTargetCurrency(String baseCode, String targetCode, Connection connection) {
+        ExchangeRateDTO exchangeRateDTO = new ExchangeRateDTO();
+        String sql =
+                """
+                          SELECT er.id,
+                        base.id          AS Id_b,
+                        base.full_name   AS full_name_b,
+                        base.code        AS code_b,
+                        base.sign        AS sign_b,
+                        target.id        AS Id_t,
+                        target.full_name AS full_name_t,
+                        target.code      AS code_t,
+                        target.sign      AS sign_t,
+                        rate
+                           
+                           FROM exchangeRates eR
+                           
+                           JOIN Currencies base
+                             ON er.BaseCurrencyId = base.id
+                           
+                         JOIN Currencies target
+                              ON er.TargetCurrencyId = target.id
+                          
+                           WHERE base.code = ? AND target.code = ?;
+                             """;
+        try {
+            var prepareStatement = connection.prepareStatement(sql);
+            prepareStatement.setString(1, baseCode);
+            prepareStatement.setString(2, targetCode);
+            var resultSet = prepareStatement.executeQuery();
+            while (resultSet.next()) {
+                exchangeRateDTO = createExchangeDTO(resultSet);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return exchangeRateDTO;
     }
 
 
