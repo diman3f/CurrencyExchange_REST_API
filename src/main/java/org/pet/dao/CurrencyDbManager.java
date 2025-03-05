@@ -6,7 +6,9 @@ import org.pet.dto.ExchangeRateDTO;
 import org.pet.entity.CurrencyEntity;
 import org.pet.utils.ConnectionManager;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -156,6 +158,57 @@ public class CurrencyDbManager {
             e.printStackTrace();
         }
         return exchangeRateDTO;
+    }
+
+    public int updateExchangeRate(String baseCode, String targetCode, Double rate, Connection connection) {
+        int resultUpdate = 0;
+        String sql = """
+                UPDATE exchangeRates
+                SET rate = ?
+                WHERE exchangeRates.BaseCurrencyId IN (SELECT Currencies.id FROM Currencies WHERE Currencies.code = ?)
+                AND exchangeRates.TargetCurrencyId IN (SELECT Currencies.id FROM Currencies WHERE Currencies.code = ?);
+                         """;
+
+        try {
+            var preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setBigDecimal(1, BigDecimal.valueOf(rate));
+            preparedStatement.setString(2, baseCode);
+            preparedStatement.setString(3, targetCode);
+            resultUpdate = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultUpdate;
+    }
+
+    public int createExchangeRate(String baseCode, String targetCode, Double rate, Connection connection) {
+        int result = 0;
+        //language=SQL
+        String sql = """
+                UPDATE exchangeRates(BaseCurrencyId, TargetCurrencyId, Rate)
+                SELECT base.id, target.id, ?
+
+                FROM exchangeRates
+                         JOIN Currencies base ON exchangeRates.BaseCurrencyId = base.id
+                         JOIN Currencies target ON exchangeRates.TargetCurrencyId = target.id
+                WHERE base.code = ?
+                  AND target.code = ?;
+                  
+                                """;
+
+        try {
+            PreparedStatement prepareStatement = connection.prepareStatement(sql);
+            prepareStatement.setBigDecimal(1, BigDecimal.valueOf(rate));
+            prepareStatement.setString(2, baseCode);
+            prepareStatement.setString(3, targetCode);
+
+            result = prepareStatement.executeUpdate();
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
 
