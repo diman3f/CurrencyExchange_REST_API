@@ -96,12 +96,12 @@ public class ExchangeRateDao {
             var prepareStatement = connection.prepareStatement(FIND_ALL_EXCHANGE_RATE_SQL);
             var resultSet = prepareStatement.executeQuery();
             while (resultSet.next()) {
-                ExchangeRate.builder()
+                exchangeRates.add(ExchangeRate.builder()
                         .id(resultSet.getInt("id"))
                         .baseCurrencyId(resultSet.getInt("base_id"))
                         .targetCurrencyId(resultSet.getInt("target_id"))
                         .rate(resultSet.getBigDecimal("rate"))
-                        .build();
+                        .build());
             }
         } catch (SQLException e) {
             throw new DaoException(e.getMessage());
