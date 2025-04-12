@@ -1,11 +1,21 @@
 package org.pet.entity;
 
-public class Currency {
+import lombok.Builder;
 
+
+@Builder
+public class Currency {
+    private int id;
     private String code;
     private String full_name;
-    private String sign;
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getCode() {
         return code;
@@ -30,4 +40,6 @@ public class Currency {
     public void setSign(String sign) {
         this.sign = sign;
     }
+
+    private String sign;
 }

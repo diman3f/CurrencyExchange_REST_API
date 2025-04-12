@@ -1,12 +1,8 @@
 package org.pet.dao;
 
-import org.pet.dto.ExchangeRateDTO;
-import org.pet.dto.ExchangeRateRequestDTO;
 import org.pet.entity.ExchangeRate;
 import org.pet.exception.DaoException;
-import org.pet.utils.ConnectionManager;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +11,6 @@ import java.util.Optional;
 public class ExchangeRateDao {
 
     private static final ExchangeRateDao INSTANCE = new ExchangeRateDao();
-
     private static final String FIND_EXCHANGE_RATE_BY_CODES_SQL = """
             SELECT exchangeRate.id AS id,
                    base.id AS base_currency_id,
@@ -35,31 +30,23 @@ public class ExchangeRateDao {
                             
             FROM exchangeRate;
             """;
-
-
     private static final String CREATE_EXCHANGE_RATE_SQL = """
-            INSERT INTO exchangeRate(BaseCurrencyId, TargetCurrencyId, Rate) VALUES (?,?,?);""";
-
-
-//добавление нового обменного курса в бд
-    //получаю поля из боди коды и рейт и передаю их в параметры метода слоя dao
-    //добавлю обменный курс в бд
-    // создаю dto добавленного обменного курса для этого
-    // использую метод по созданию dto на каждую валюту для того чтобы собрать обменный json
-    // получить модель сохраненого обменного курса, а потом только ее смапить в дто
+            INSERT INTO exchangeRate(BaseCurrencyId, TargetCurrencyId, Rate) VALUES (?,?,?);
+            """;
+    private static final String UPDATE_EXCHANGE_RATE_SQL = """
+            UPDATE exchangeRate
+            SET BaseCurrencyId   = ?,
+                TargetCurrencyId = ?,
+                Rate             = ?
+            WHERE id = ?;
+                      
+              """;
 
     private ExchangeRateDao() {
-
     }
 
     public static ExchangeRateDao getInstance() {
         return INSTANCE;
-    }
-
-    public ExchangeRateDTO findAll() {
-        ExchangeRateDTO dto = new ExchangeRateDTO();
-
-        return dto;
     }
 
     public Optional<ExchangeRate> findExchangeRate(String baseCode, String targetCode, Connection connection) {
@@ -83,7 +70,6 @@ public class ExchangeRateDao {
         return exchangeRate;
     }
 
-
     public List<ExchangeRate> findAllExchangeRate(Connection connection) {
         List<ExchangeRate> exchangeRates = new ArrayList<>();
         try {
@@ -106,20 +92,33 @@ public class ExchangeRateDao {
     public ExchangeRate saveExchangeRate(ExchangeRate exchangeRate, Connection connection) {
         try {
             var prepareStatement = connection.prepareStatement(CREATE_EXCHANGE_RATE_SQL, Statement.RETURN_GENERATED_KEYS);
-            prepareStatement.setBigDecimal(1, exchangeRate.getRate());
-            prepareStatement.setInt(2, exchangeRate.getBaseCurrencyId());
-            prepareStatement.setInt(3, exchangeRate.getTargetCurrencyId());
+            prepareStatement.setInt(1, exchangeRate.getBaseCurrencyId());
+            prepareStatement.setInt(2, exchangeRate.getTargetCurrencyId());
+            prepareStatement.setBigDecimal(3, exchangeRate.getRate());
             prepareStatement.executeUpdate();
             ResultSet generatedKeys = prepareStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
-                exchangeRate.setId(generatedKeys.getInt("id"));
+                exchangeRate.setId(generatedKeys.getInt(1));
             }
         } catch (SQLException e) {
-            throw new DaoException("Обменный курс уже существует");
+            e.printStackTrace();
         }
         return exchangeRate;
     }
 
+    public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate, Connection connection) {
+        try {
+            var prepareStatement = connection.prepareStatement(UPDATE_EXCHANGE_RATE_SQL);
+            prepareStatement.setInt(1, exchangeRate.getBaseCurrencyId());
+            prepareStatement.setInt(2, exchangeRate.getTargetCurrencyId());
+            prepareStatement.setBigDecimal(3, exchangeRate.getRate());
+            prepareStatement.setInt(4, exchangeRate.getId());
+            prepareStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return exchangeRate;
+    }
 }
 
 

@@ -7,12 +7,11 @@ import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.pet.exception.InvalidParameterCurrencyException;
-
 import java.io.IOException;
 import java.rmi.RemoteException;
 
-@WebFilter(filterName = "ValidateInput", urlPatterns = {"/currency/*"})
-public class ValidateInput extends HttpFilter {
+@WebFilter(filterName = "ValidateInputUrlParameter", urlPatterns = {"/currency/*"})
+public class ValidateInputUrlParameter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
         String code = req.getParameter("*");
@@ -30,6 +29,4 @@ public class ValidateInput extends HttpFilter {
             throw new InvalidParameterCurrencyException("Укажите параметр code в формате ХХХ или ХХХYYY");
         }
     }
-
-
 }

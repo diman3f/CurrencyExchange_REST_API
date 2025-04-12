@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.pet.exception.ExceptionHandler;
-
 import java.io.IOException;
 
 @WebFilter(filterName = "ExceptionFilter", urlPatterns = {"/*"})

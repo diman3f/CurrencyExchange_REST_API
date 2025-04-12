@@ -1,10 +1,17 @@
 package org.pet.dto;
 
+import lombok.*;
+
+
+
+@Builder
+
 public class CurrencyDTO {
-    private int id;
-    private String code;
-    private String full_name;
-    private String sign;
+    int id;
+    String code;
+    String full_name;
+    String sign;
+
 
     public int getId() {
         return id;
@@ -37,13 +44,6 @@ public class CurrencyDTO {
     public void setSign(String sign) {
         this.sign = sign;
     }
-
-    @Override
-    public String toString() {
-        return "CurrencyDTO{" +
-                "code='" + code + '\'' +
-                ", full_name='" + full_name + '\'' +
-                ", sign='" + sign + '\'' +
-                '}';
-    }
 }
+
+
