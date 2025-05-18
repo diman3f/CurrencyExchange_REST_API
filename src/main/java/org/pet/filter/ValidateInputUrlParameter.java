@@ -10,7 +10,7 @@ import org.pet.exception.InvalidParameterCurrencyException;
 import java.io.IOException;
 import java.rmi.RemoteException;
 
-@WebFilter(filterName = "ValidateInputUrlParameter", urlPatterns = {"/currency/*"})
+//@WebFilter(filterName = "ValidateInputUrlParameter", urlPatterns = {"/currency/*"})
 public class ValidateInputUrlParameter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {

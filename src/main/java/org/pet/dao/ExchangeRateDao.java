@@ -2,6 +2,7 @@ package org.pet.dao;
 
 import org.pet.entity.ExchangeRate;
 import org.pet.exception.DaoException;
+import org.pet.utils.ConnectionManager;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -49,9 +50,9 @@ public class ExchangeRateDao {
         return INSTANCE;
     }
 
-    public Optional<ExchangeRate> findExchangeRate(String baseCode, String targetCode, Connection connection) {
+    public Optional<ExchangeRate> findExchangeRate(String baseCode, String targetCode) {
         Optional<ExchangeRate> exchangeRate = Optional.empty();
-        try {
+        try(Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_EXCHANGE_RATE_BY_CODES_SQL);
             prepareStatement.setString(1, baseCode);
             prepareStatement.setString(2, targetCode);
@@ -70,9 +71,9 @@ public class ExchangeRateDao {
         return exchangeRate;
     }
 
-    public List<ExchangeRate> findAllExchangeRate(Connection connection) {
+    public List<ExchangeRate> findAllExchangeRate() {
         List<ExchangeRate> exchangeRates = new ArrayList<>();
-        try {
+        try (Connection connection = ConnectionManager.getConnection()) {
             var prepareStatement = connection.prepareStatement(FIND_ALL_EXCHANGE_RATE_SQL);
             var resultSet = prepareStatement.executeQuery();
             while (resultSet.next()) {
@@ -89,8 +90,8 @@ public class ExchangeRateDao {
         return exchangeRates;
     }
 
-    public ExchangeRate saveExchangeRate(ExchangeRate exchangeRate, Connection connection) {
-        try {
+    public ExchangeRate saveExchangeRate(ExchangeRate exchangeRate) {
+        try (Connection connection = ConnectionManager.getConnection();) {
             var prepareStatement = connection.prepareStatement(CREATE_EXCHANGE_RATE_SQL, Statement.RETURN_GENERATED_KEYS);
             prepareStatement.setInt(1, exchangeRate.getBaseCurrencyId());
             prepareStatement.setInt(2, exchangeRate.getTargetCurrencyId());
@@ -106,8 +107,8 @@ public class ExchangeRateDao {
         return exchangeRate;
     }
 
-    public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate, Connection connection) {
-        try {
+    public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate) {
+        try (Connection connection = ConnectionManager.getConnection()) {
             var prepareStatement = connection.prepareStatement(UPDATE_EXCHANGE_RATE_SQL);
             prepareStatement.setInt(1, exchangeRate.getBaseCurrencyId());
             prepareStatement.setInt(2, exchangeRate.getTargetCurrencyId());

@@ -8,8 +8,8 @@ import lombok.*;
 
 public class CurrencyDTO {
     int id;
+    String name;
     String code;
-    String full_name;
     String sign;
 
 
@@ -29,12 +29,12 @@ public class CurrencyDTO {
         this.code = code;
     }
 
-    public String getFull_name() {
-        return full_name;
+    public String getName() {
+        return name;
     }
 
-    public void setFull_name(String full_name) {
-        this.full_name = full_name;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getSign() {

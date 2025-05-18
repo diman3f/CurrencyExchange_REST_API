@@ -1,6 +1,7 @@
 package org.pet.servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,16 +16,15 @@ import org.pet.utils.ConnectionManager;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
-    private Connection connection;
     private ExchangeRateService service;
 
     @Override
     public void init() throws ServletException {
-        this.connection = ConnectionManager.open();
         this.service = new ExchangeRateService();
     }
 
@@ -32,11 +32,9 @@ public class ExchangeRatesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             List<ExchangeRateResponseDTO> dtoList = service.getAllExchangeRate();
-            resp.setContentType("application/json");
             ObjectMapper mapper = new ObjectMapper();
-            for (ExchangeRateResponseDTO dto : dtoList) {
-                resp.getWriter().write(mapper.writeValueAsString(dto));
-            }
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            resp.getWriter().write(mapper.writeValueAsString(dtoList));
         } catch (DaoException e) {
             throw new DaoException(e.getMessage());
         }
@@ -48,6 +46,7 @@ public class ExchangeRatesServlet extends HttpServlet {
         try {
             ExchangeRateResponseDTO exchangeRateResponseDTO = service.saveExchangeRate(dto);
             ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
             resp.getWriter().write(mapper.writeValueAsString(exchangeRateResponseDTO));
         } catch (IOException e) {
             e.getMessage();
@@ -56,8 +55,8 @@ public class ExchangeRatesServlet extends HttpServlet {
     }
 
     private ExchangeRateRequestServletDTO dtoExchangeRateRequest(HttpServletRequest req) {
-        String codeBase = req.getParameter("baseCodeCurrency");
-        String codeTarget = req.getParameter("targetCodeCurrency");
+        String codeBase = req.getParameter("baseCurrencyCode");
+        String codeTarget = req.getParameter("targetCurrencyCode");
         BigDecimal rate = BigDecimal.valueOf(Double.parseDouble(req.getParameter("rate")));
         return ExchangeRateRequestServletDTO.builder()
                 .baseCode(codeBase)

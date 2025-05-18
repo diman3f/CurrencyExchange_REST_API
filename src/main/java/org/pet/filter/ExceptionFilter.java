@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.pet.exception.ExceptionHandler;
 import java.io.IOException;
 
-@WebFilter(filterName = "ExceptionFilter", urlPatterns = {"/*"})
+//@WebFilter(filterName = "ExceptionFilter", urlPatterns = {"/*"})
 public class ExceptionFilter extends HttpFilter {
 
     ExceptionHandler exceptionHandler;

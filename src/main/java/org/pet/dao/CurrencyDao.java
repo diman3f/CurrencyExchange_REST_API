@@ -43,8 +43,8 @@ public class CurrencyDao {
         return INSTANCE;
     }
 
-    public Optional<Currency> findByCode(String code, Connection connection) {
-        try {
+    public Optional<Currency> findByCode(String code) {
+        try (Connection connection = ConnectionManager.getConnection();) {
             var prepareStatement = connection.prepareStatement(FIND_BY_CODE_SQL);
             prepareStatement.setString(1, code);
             ResultSet resultSet = prepareStatement.executeQuery();
@@ -53,28 +53,29 @@ public class CurrencyDao {
                 currency = Currency.builder()
                         .id(resultSet.getInt("id"))
                         .code(resultSet.getString("code"))
-                        .full_name(resultSet.getString("full_name"))
+                        .name(resultSet.getString("full_name"))
                         .sign(resultSet.getString("sign"))
                         .build();
             } else {
                 throw new CurrencyException("Валюта не найдена");
-            }return Optional.ofNullable(currency);
+            }
+            return Optional.ofNullable(currency);
         } catch (SQLException e) {
             throw new DaoException("Ошибка обращения к базе данных");
         }
     }
 
-    public Optional<Currency> findById(int id, Connection connection) {
-        try {
+    public Optional<Currency> findById(int id) {
+        try (Connection connection = ConnectionManager.getConnection()) {
             var prepareStatement = connection.prepareStatement(FIND_BY_ID_SQL);
-            prepareStatement.setInt(1,id);
+            prepareStatement.setInt(1, id);
             ResultSet resultSet = prepareStatement.executeQuery();
             Currency currency = null;
             if (resultSet.next()) {
                 currency = Currency.builder()
                         .id(resultSet.getInt("id"))
                         .code(resultSet.getString("code"))
-                        .full_name(resultSet.getString("full_name"))
+                        .name(resultSet.getString("full_name"))
                         .sign(resultSet.getString("sign"))
                         .build();
             } else {
@@ -88,8 +89,7 @@ public class CurrencyDao {
 
     public List<Currency> findAllCurrencies() {
         List<Currency> currencyEntities = new ArrayList<>();
-        Connection connection = ConnectionManager.open();
-        try {
+        try (Connection connection = ConnectionManager.getConnection()) {
             var prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
             var resultSet = prepareStatement.executeQuery();
             while (resultSet.next()) {
@@ -103,16 +103,17 @@ public class CurrencyDao {
         } catch (SQLException e) {
             throw new DaoException(e, "Ошибка на сервере, повторите запрос позже");
         }
+
         return currencyEntities;
     }
 
     public Optional<Currency> createCurrency(CurrencyDTO dto) {
         Optional<Currency> currency = Optional.empty();
-        Connection connection = ConnectionManager.open();
         int result = 0;
-        try (var prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL)) {
+        try (Connection connection = ConnectionManager.getConnection()) {
+            var prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL);
             prepareStatement.setString(1, dto.getCode());
-            prepareStatement.setString(2, dto.getFull_name());
+            prepareStatement.setString(2, dto.getName());
             prepareStatement.setString(3, dto.getSign());
             result = prepareStatement.executeUpdate();
             if (result != 0) {
@@ -142,7 +143,7 @@ public class CurrencyDao {
             currency = Currency.builder()
                     .id(resultSet.getInt("id"))
                     .code(resultSet.getString("code"))
-                    .full_name(resultSet.getString("full_name"))
+                    .name(resultSet.getString("full_name"))
                     .sign(resultSet.getString("sign"))
                     .build();
         } catch (SQLException e) {

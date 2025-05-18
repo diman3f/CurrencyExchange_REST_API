@@ -6,8 +6,9 @@ import lombok.Builder;
 @Builder
 public class Currency {
     private int id;
+    private String name;
     private String code;
-    private String full_name;
+    private String sign;
 
     public int getId() {
         return id;
@@ -25,14 +26,12 @@ public class Currency {
         this.code = code;
     }
 
-    public String getFull_name() {
-        return full_name;
+    public String getName() {
+        return name;
     }
-
-    public void setFull_name(String full_name) {
-        this.full_name = full_name;
+    public void setName(String name) {
+        this.name = name;
     }
-
     public String getSign() {
         return sign;
     }
@@ -41,5 +40,4 @@ public class Currency {
         this.sign = sign;
     }
 
-    private String sign;
 }

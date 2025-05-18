@@ -19,17 +19,18 @@ public interface ExchangeRateMapper {
     @Mapping(target = "rate", source = "exchangeRate.rate")
     ExchangeRateResponseDTO toExchangeRateResponseDTO(Currency base, Currency target, ExchangeRate exchangeRate);
 
+
     @Mapping(target = "baseCode", source = "parameter", qualifiedByName = "toBaseCodeCurrencyFromParameter")
     @Mapping(target = "targetCode", source = "parameter", qualifiedByName = "toTargetCodeCurrencyFromParameter")
     ExchangeRateRequestServletDTO toExchangeRateRequestDto(String parameter);
 
     @Named("toBaseCodeCurrencyFromParameter")
     default String getBaseCode(String parameter) {
-        return parameter.substring(0, 3);
+        return parameter.substring(1, 4);
     }
 
     @Named("toTargetCodeCurrencyFromParameter")
     default String getTargetCode(String parameter) {
-        return parameter.substring(3);
+        return parameter.substring(4);
     }
 }
