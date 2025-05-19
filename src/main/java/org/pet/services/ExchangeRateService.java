@@ -157,7 +157,7 @@ public class ExchangeRateService {
         ExchangeRate straightCurrencyBaseExchangeRate = getStraightCurrencyExchangeRateToUSD(baseCode);
         ExchangeRate straightCurrencyTargetExchangeRate = getStraightCurrencyExchangeRateToUSD(targetCode);
         BigDecimal crossRate = calculateCrossRate(straightCurrencyBaseExchangeRate, straightCurrencyTargetExchangeRate);
-        BigDecimal convertedAmount = (crossRate.multiply(BigDecimal.valueOf(amount)));
+        BigDecimal convertedAmount = (crossRate.multiply(BigDecimal.valueOf(amount)).setScale(2,RoundingMode.HALF_EVEN));
         return CurrencyExchangeRateResponseDto.builder()
                 .baseCurrency(instanceCurrencyDao.findById(straightCurrencyBaseExchangeRate.getTargetCurrencyId()).orElseThrow())
                 .targetCurrency(instanceCurrencyDao.findById(straightCurrencyTargetExchangeRate.getTargetCurrencyId()).orElseThrow())
@@ -192,9 +192,8 @@ public class ExchangeRateService {
     private BigDecimal calculateCrossRate(ExchangeRate straightBaseRate, ExchangeRate straightTargetRate) {
         BigDecimal baseRate = straightBaseRate.getRate();
         BigDecimal targetRate = straightTargetRate.getRate();
-        BigDecimal oneA = new BigDecimal("1").divide(baseRate);
-        BigDecimal oneB = oneA.multiply(targetRate);
-        return oneB.divide(oneA, 6, RoundingMode.HALF_DOWN);
+
+        return targetRate.divide(baseRate, 6, RoundingMode.HALF_DOWN);
 
 
     }
