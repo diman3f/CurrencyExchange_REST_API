@@ -1,35 +1,40 @@
 package org.pet.servlets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.pet.dao.CurrencyDao;
+import org.pet.dto.CurrencyDTO;
 import org.pet.entity.Currency;
-import org.pet.utils.ConnectionManager;
+import org.pet.exception.CurrencyException;
+import org.pet.exception.DaoException;
+import org.pet.exception.URLEncodingException;
+import org.pet.mapper.CurrencyMapper;
+import org.pet.utils.JsonResponseBuilder;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.Optional;
 
 @WebServlet("/currency/*")
-public class CurrencyServlet extends HttpServlet {
+public class CurrencyServlet extends ExceptionHandler {
 
     @Override
-    public void init() {
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String codeCurrency = req.getParameter("*");
-        CurrencyDao instance = CurrencyDao.getINSTANCE();
-        Connection connection = ConnectionManager.getConnection();
-        Optional<Currency> currency = instance.findByCode(codeCurrency);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        String json = objectMapper.writeValueAsString(currency.get());
-        resp.getWriter().write(json);
+        if (codeCurrency.isEmpty()) {
+            throw new URLEncodingException("Код валюты отсутствует в адресе");
+        }
+        try {
+            CurrencyDao instance = CurrencyDao.getINSTANCE();
+            Optional<Currency> currency = instance.findByCode(codeCurrency);
+            CurrencyDTO dto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency.orElseThrow());
+            JsonResponseBuilder.buildJsonResponse(resp, dto);
+        } catch (DaoException e) {
+            throw new CurrencyException(e.getMessage());
+        }
     }
 }
+
+
+

@@ -1,7 +1,9 @@
 package org.pet.dao;
 
 import org.pet.entity.ExchangeRate;
+import org.pet.exception.CurrencyPairAlreadyExistsException;
 import org.pet.exception.DaoException;
+import org.pet.exception.DataBaseException;
 import org.pet.utils.ConnectionManager;
 
 import java.sql.*;
@@ -52,7 +54,7 @@ public class ExchangeRateDao {
 
     public Optional<ExchangeRate> findExchangeRate(String baseCode, String targetCode) {
         Optional<ExchangeRate> exchangeRate = Optional.empty();
-        try(Connection connection = ConnectionManager.getConnection()) {
+        try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_EXCHANGE_RATE_BY_CODES_SQL);
             prepareStatement.setString(1, baseCode);
             prepareStatement.setString(2, targetCode);
@@ -66,7 +68,7 @@ public class ExchangeRateDao {
                         .build());
             }
         } catch (SQLException e) {
-            new DaoException(e.getMessage());
+            new DaoException("База данных не доступна");
         }
         return exchangeRate;
     }
@@ -85,7 +87,7 @@ public class ExchangeRateDao {
                         .build());
             }
         } catch (SQLException e) {
-            throw new DaoException(e.getMessage());
+            throw new DataBaseException("База данных не доступна");
         }
         return exchangeRates;
     }
@@ -102,7 +104,7 @@ public class ExchangeRateDao {
                 exchangeRate.setId(generatedKeys.getInt(1));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new CurrencyPairAlreadyExistsException("Валютная пара с таким кодом уже существует");
         }
         return exchangeRate;
     }
@@ -116,7 +118,7 @@ public class ExchangeRateDao {
             prepareStatement.setInt(4, exchangeRate.getId());
             prepareStatement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new DataBaseException("База данных не доступна");
         }
         return exchangeRate;
     }

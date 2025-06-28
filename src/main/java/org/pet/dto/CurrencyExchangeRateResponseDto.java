@@ -5,7 +5,7 @@ import org.pet.entity.Currency;
 
 import java.math.BigDecimal;
 @Builder
-public class CurrencyExchangeRateResponseDto {
+public class CurrencyExchangeRateResponseDto extends BaseDto {
 
     private Currency baseCurrency;
     private Currency targetCurrency;
@@ -13,20 +13,12 @@ public class CurrencyExchangeRateResponseDto {
     private double amount;
     private BigDecimal convertedAmount;
 
-    public Currency getBaseCurrency() {
-        return baseCurrency;
+    public void setConvertedAmount(BigDecimal convertedAmount) {
+        this.convertedAmount = convertedAmount;
     }
 
-    public void setBaseCurrency(Currency baseCurrency) {
-        this.baseCurrency = baseCurrency;
-    }
-
-    public Currency getTargetCurrency() {
-        return targetCurrency;
-    }
-
-    public void setTargetCurrency(Currency targetCurrency) {
-        this.targetCurrency = targetCurrency;
+    public BigDecimal getConvertedAmount() {
+        return convertedAmount;
     }
 
     public BigDecimal getRate() {
@@ -45,12 +37,5 @@ public class CurrencyExchangeRateResponseDto {
         this.amount = amount;
     }
 
-    public BigDecimal getConvertedAmount() {
-        return convertedAmount;
-    }
-
-    public void setConvertedAmount(BigDecimal convertedAmount) {
-        this.convertedAmount = convertedAmount;
-    }
 }
 

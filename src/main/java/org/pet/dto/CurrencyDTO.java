@@ -2,11 +2,8 @@ package org.pet.dto;
 
 import lombok.*;
 
-
-
 @Builder
-
-public class CurrencyDTO {
+public class CurrencyDTO extends BaseDto {
     int id;
     String name;
     String code;

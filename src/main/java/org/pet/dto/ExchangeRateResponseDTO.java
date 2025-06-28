@@ -4,7 +4,7 @@ import org.pet.entity.Currency;
 
 import java.math.BigDecimal;
 
-public class ExchangeRateResponseDTO {
+public class ExchangeRateResponseDTO extends BaseDto {
     private int id;
     private Currency baseCurrency;
     private Currency targetCurrency;

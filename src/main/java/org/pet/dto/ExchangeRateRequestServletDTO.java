@@ -3,7 +3,7 @@ package org.pet.dto;
 import lombok.Builder;
 import java.math.BigDecimal;
 @Builder
-public class ExchangeRateRequestServletDTO {
+public class ExchangeRateRequestServletDTO extends BaseDto{
     private String baseCode;
     private String targetCode;
     private BigDecimal rate;

@@ -8,16 +8,15 @@ import org.pet.dto.ExchangeRateRequestServletDTO;
 import org.pet.dto.ExchangeRateResponseDTO;
 import org.pet.entity.Currency;
 import org.pet.entity.ExchangeRate;
-import org.pet.exception.CurrencyException;
 import org.pet.exception.DaoException;
+import org.pet.exception.DataBaseException;
+import org.pet.exception.ExchangeRateException;
 import org.pet.mapper.ExchangeRateMapper;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class ExchangeRateService {
@@ -26,7 +25,7 @@ public class ExchangeRateService {
     private static ExchangeRateDao instanceExchangeRateDao = ExchangeRateDao.getInstance();
 
 
-    public ExchangeRateService() {
+    private ExchangeRateService() {
     }
 
     public static ExchangeRateService getINSTANCE() {
@@ -34,16 +33,16 @@ public class ExchangeRateService {
     }
 
     public ExchangeRateResponseDTO getExchangeRate(ExchangeRateRequestServletDTO exchangeRateRequestDTO) {
-        String baseCode = exchangeRateRequestDTO.getBaseCode();
-        String targetCode = exchangeRateRequestDTO.getTargetCode();
-        Optional<ExchangeRate> exchangeRate = instanceExchangeRateDao.findExchangeRate(baseCode, targetCode);
-        Optional<Currency> currencyBase = instanceCurrencyDao.findByCode(baseCode);
-        Optional<Currency> currencyTarget = instanceCurrencyDao.findByCode(targetCode);
-        ExchangeRateMapper instance = ExchangeRateMapper.INSTANCE;
         try {
+            String baseCode = exchangeRateRequestDTO.getBaseCode();
+            String targetCode = exchangeRateRequestDTO.getTargetCode();
+            Optional<ExchangeRate> exchangeRate = instanceExchangeRateDao.findExchangeRate(baseCode, targetCode);
+            Optional<Currency> currencyBase = instanceCurrencyDao.findByCode(baseCode);
+            Optional<Currency> currencyTarget = instanceCurrencyDao.findByCode(targetCode);
+            ExchangeRateMapper instance = ExchangeRateMapper.INSTANCE;
             return instance.toExchangeRateResponseDTO(currencyBase.orElseThrow(), currencyTarget.orElseThrow(), exchangeRate.orElseThrow());
-        } catch (NoSuchElementException e) {
-            throw new DaoException(e.getMessage());
+        } catch (DaoException e) {
+            throw new ExchangeRateException("Обменный курс для пары не найден");
         }
     }
 
@@ -59,14 +58,13 @@ public class ExchangeRateService {
                     exchangeRateResponseDTOList.add(mapper.toExchangeRateResponseDTO(baseCurrency.orElseThrow(), targetCurrency.orElseThrow(), er));
                 }
             }
-        } catch (DaoException | CurrencyException | NoSuchElementException e) {
-            throw new DaoException(e.getMessage());
+        } catch (RuntimeException e) {
+            throw new DataBaseException("Ошибка на стороне сервера");
         }
         return exchangeRateResponseDTOList;
     }
 
     public ExchangeRateResponseDTO saveExchangeRate(ExchangeRateRequestServletDTO dtoExchangeRate) {
-        try {
             Optional<Currency> baseCurrency = instanceCurrencyDao.findByCode(dtoExchangeRate.getBaseCode());
             Optional<Currency> targetCurrency = instanceCurrencyDao.findByCode(dtoExchangeRate.getTargetCode());
 
@@ -75,15 +73,9 @@ public class ExchangeRateService {
                     .targetCurrencyId(targetCurrency.orElseThrow().getId())
                     .rate(dtoExchangeRate.getRate())
                     .build();
-
             ExchangeRate result = instanceExchangeRateDao.saveExchangeRate(exchangeRate);
             exchangeRate = result;
-
             return ExchangeRateMapper.INSTANCE.toExchangeRateResponseDTO(baseCurrency.orElseThrow(), targetCurrency.orElseThrow(), exchangeRate);
-
-        } catch (NoSuchElementException e) {
-            throw new DaoException(e.getMessage());
-        }
     }
 
     public ExchangeRateResponseDTO updateExchangeRate(ExchangeRateRequestServletDTO dto) {
@@ -95,43 +87,46 @@ public class ExchangeRateService {
             Optional<Currency> baseCurrency = instanceCurrencyDao.findByCode(dto.getBaseCode());
             Optional<Currency> targetCurrency = instanceCurrencyDao.findByCode(dto.getTargetCode());
             return ExchangeRateMapper.INSTANCE.toExchangeRateResponseDTO(baseCurrency.orElseThrow(), targetCurrency.orElseThrow(), exchangeRate);
-        } catch (NoSuchElementException e) {
-            throw new DaoException(e.getMessage());
+        } catch (RuntimeException e) {
+            throw new ExchangeRateException("Валютная пара отсутствует в базе данных");
         }
     }
 
     public CurrencyExchangeRateResponseDto executeExchangeCurrency(CurrencyExchangeRateRequestDto dto) {
         String baseCurrency = dto.getBaseCurrency();
         String targetCurrency = dto.getTargetCurrency();
-        Double amount = dto.getAmount();
+        double amount = dto.getAmount();
         try {
             if (isExchangeRateByStraightRate(baseCurrency, targetCurrency)) {
-                ExchangeRate rate = instanceExchangeRateDao.findExchangeRate(baseCurrency, targetCurrency).get();
+                ExchangeRate exchangeRate = instanceExchangeRateDao.findExchangeRate(baseCurrency, targetCurrency).get();
+                BigDecimal rate = exchangeRate.getRate();
+                BigDecimal convertedAmount = ((rate.multiply(BigDecimal.valueOf(dto.getAmount()))));
+                convertedAmount = convertedAmount.setScale(2, RoundingMode.HALF_EVEN);
                 return CurrencyExchangeRateResponseDto.builder()
-                        .baseCurrency(instanceCurrencyDao.findById(rate.getBaseCurrencyId()).orElseThrow())
-                        .targetCurrency(instanceCurrencyDao.findById(rate.getTargetCurrencyId()).orElseThrow())
-                        .rate(rate.getRate())
+                        .baseCurrency(instanceCurrencyDao.findById(exchangeRate.getBaseCurrencyId()).orElseThrow())
+                        .targetCurrency(instanceCurrencyDao.findById(exchangeRate.getTargetCurrencyId()).orElseThrow())
+                        .rate(rate)
                         .amount(dto.getAmount())
-                        .convertedAmount((rate.getRate().multiply(BigDecimal.valueOf(dto.getAmount()))))
+                        .convertedAmount(convertedAmount)
                         .build();
             } else if (isExchangeRateByReverseRate(targetCurrency, baseCurrency)) {
                 ExchangeRate rate = instanceExchangeRateDao.findExchangeRate(targetCurrency, baseCurrency).get();
                 return buildDtoFromExchangeRate(rate, amount);
             } else return buildDtoCalculateCrossRate(baseCurrency, targetCurrency, amount);
-        } catch (NoSuchElementException | DaoException e) {
-            e.printStackTrace();
-            throw new DaoException("Такого обменного курса не существует");
+        } catch (RuntimeException e) {
+            throw new ExchangeRateException("Произвести конвертацию для указанной пары валют невозможно");
         }
     }
 
-
     private CurrencyExchangeRateResponseDto buildDtoFromExchangeRate(ExchangeRate rate, double amount) {
+        BigDecimal convertedAmount = ((rate.getRate().multiply(BigDecimal.valueOf(amount))));
+        convertedAmount = convertedAmount.setScale(2, RoundingMode.HALF_EVEN);
         return CurrencyExchangeRateResponseDto.builder()
                 .baseCurrency(instanceCurrencyDao.findById(rate.getTargetCurrencyId()).orElseThrow())
                 .targetCurrency(instanceCurrencyDao.findById(rate.getBaseCurrencyId()).orElseThrow())
                 .rate(calculateReverseRate(rate))
                 .amount(amount)
-                .convertedAmount((calculateReverseRate(rate).multiply(BigDecimal.valueOf(amount))))
+                .convertedAmount(convertedAmount)
                 .build();
     }
 
@@ -154,40 +149,31 @@ public class ExchangeRateService {
 
 
     private CurrencyExchangeRateResponseDto buildDtoCalculateCrossRate(String baseCode, String targetCode, double amount) {
-        ExchangeRate straightCurrencyBaseExchangeRate = getStraightCurrencyExchangeRateToUSD(baseCode);
-        ExchangeRate straightCurrencyTargetExchangeRate = getStraightCurrencyExchangeRateToUSD(targetCode);
-        BigDecimal crossRate = calculateCrossRate(straightCurrencyBaseExchangeRate, straightCurrencyTargetExchangeRate);
-        BigDecimal convertedAmount = (crossRate.multiply(BigDecimal.valueOf(amount)).setScale(2,RoundingMode.HALF_EVEN));
-        return CurrencyExchangeRateResponseDto.builder()
-                .baseCurrency(instanceCurrencyDao.findById(straightCurrencyBaseExchangeRate.getTargetCurrencyId()).orElseThrow())
-                .targetCurrency(instanceCurrencyDao.findById(straightCurrencyTargetExchangeRate.getTargetCurrencyId()).orElseThrow())
-                .rate(crossRate)
-                .amount(amount)
-                .convertedAmount(convertedAmount)
-                .build();
+            ExchangeRate straightCurrencyBaseExchangeRate = getStraightCurrencyExchangeRateToUSD(baseCode);
+            ExchangeRate straightCurrencyTargetExchangeRate = getStraightCurrencyExchangeRateToUSD(targetCode);
+            BigDecimal crossRate = calculateCrossRate(straightCurrencyBaseExchangeRate, straightCurrencyTargetExchangeRate);
+            BigDecimal convertedAmount = (crossRate.multiply(BigDecimal.valueOf(amount)).setScale(2, RoundingMode.HALF_EVEN));
+            return CurrencyExchangeRateResponseDto.builder()
+                    .baseCurrency(instanceCurrencyDao.findById(straightCurrencyBaseExchangeRate.getTargetCurrencyId()).orElseThrow())
+                    .targetCurrency(instanceCurrencyDao.findById(straightCurrencyTargetExchangeRate.getTargetCurrencyId()).orElseThrow())
+                    .rate(crossRate)
+                    .amount(amount)
+                    .convertedAmount(convertedAmount)
+                    .build();
     }
 
     private ExchangeRate getStraightCurrencyExchangeRateToUSD(String targetCurrencyCode) {
         String referenceCurrency = "USD";
         Optional<ExchangeRate> exchangeRate = instanceExchangeRateDao.findExchangeRate(referenceCurrency, targetCurrencyCode);
-        try {
-            return exchangeRate.orElseThrow();
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
-            throw new DaoException("Прямой обменный курс отсутствует для указнной валюты");
-        }
+        return exchangeRate.orElseThrow();
     }
+
 
     private ExchangeRate getReverseCurrencyExchangeRateToUSD(String baseCurrencyCode) {
         String referenceCurrency = "USD";
         Optional<ExchangeRate> baseExchangeRate = instanceExchangeRateDao.findExchangeRate(baseCurrencyCode, referenceCurrency);
-        try {
-            return baseExchangeRate.orElseThrow();
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
-            throw new DaoException("Обратный обменный курс отсутствует для указнной валюты");
+        return baseExchangeRate.orElseThrow();
         }
-    }
 
     private BigDecimal calculateCrossRate(ExchangeRate straightBaseRate, ExchangeRate straightTargetRate) {
         BigDecimal baseRate = straightBaseRate.getRate();
