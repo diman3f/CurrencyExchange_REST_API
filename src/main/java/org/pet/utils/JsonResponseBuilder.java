@@ -19,6 +19,8 @@ public final class JsonResponseBuilder extends HttpServlet {
         mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
+    private JsonResponseBuilder() {
+    }
 
     public static void buildExceptionResponse(HttpServletResponse response, RuntimeException e) {
         setContentType(response);
