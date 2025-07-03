@@ -23,7 +23,7 @@ public class ExchangeRatesServlet extends ExceptionHandler {
             List<ExchangeRateResponseDTO> dtoList = ExchangeRateService.getINSTANCE().getAllExchangeRate();
             JsonResponseBuilder.buildJsonResponse(resp, dtoList);
         } catch (DataBaseException e) {
-          throw new ExchangeRateException(e.getMessage());
+            throw new ExchangeRateException(e.getMessage());
         }
     }
 
@@ -42,7 +42,8 @@ public class ExchangeRatesServlet extends ExceptionHandler {
         String codeBase = req.getParameter("baseCurrencyCode");
         String codeTarget = req.getParameter("targetCurrencyCode");
         BigDecimal rate = BigDecimal.valueOf(Double.parseDouble(req.getParameter("rate")));
-        if (codeBase.length() == 3 && codeTarget.length() == 3) {
+        String rateLength = String.valueOf(rate.doubleValue());
+        if (codeBase.length() == 3 && codeTarget.length() == 3 && rate.doubleValue() > 0 && rateLength.length() < 9) {
             return ExchangeRateRequestServletDTO.builder()
                     .baseCode(codeBase)
                     .targetCode(codeTarget)
