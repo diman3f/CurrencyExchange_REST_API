@@ -10,6 +10,8 @@ public class Currency {
     private String code;
     private String sign;
 
+
+
     public int getId() {
         return id;
     }

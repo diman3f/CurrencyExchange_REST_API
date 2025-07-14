@@ -18,9 +18,11 @@ public final class ConnectionManager {
     }
 
     private static void initConnectionPool() {
-        String root = System.getProperty("catalina.base");
-        String rootPath = root + "/exchangeDB/Currencies.db";
-        config.setJdbcUrl("jdbc:sqlite:" + rootPath);
+//        String root = System.getProperty("catalina.base");
+//        String rootPath = root + "\\exchangeDB\\Currencies.db";
+//        config.setJdbcUrl("jdbc:sqlite:" + rootPath);
+        String testURL = "C:\\work\\apache-tomcat-10.1.34\\exchangeDB\\Currencies.db";
+        config.setJdbcUrl("jdbc:sqlite:"+testURL);
         config.setMaximumPoolSize(15);
         ds = new HikariDataSource(config);
     }
