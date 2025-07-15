@@ -2,6 +2,7 @@ package org.pet.filters;
 
 import org.pet.dao.CurrencyRepository;
 import org.pet.dao.JDBCCurrencyRepository;
+import org.pet.exception.CurrencyException;
 
 import java.util.Currency;
 
@@ -18,7 +19,7 @@ public class CurrencyValidator implements Validator {
                     .build();
             return currency;
         }
-        throw new RuntimeException("Код не является допустимым кодом валюты по ISO 4217");
+        throw new CurrencyException("Код не является допустимым кодом валюты по ISO 4217");
     }
 
 
@@ -27,7 +28,7 @@ public class CurrencyValidator implements Validator {
             Currency currency = Currency.getInstance(code);
             return true;
         } catch (Exception e) {
-            throw new RuntimeException("Код не является допустимым кодом валюты по ISO 4217");
+            throw new CurrencyException("Код не является допустимым кодом валюты по ISO 4217");
         }
     }
 

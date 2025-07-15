@@ -1,5 +1,6 @@
 package org.pet.context;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -12,6 +13,7 @@ public class ApplicationInitializer implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServiceLocator.registerService(new CurrencyValidator());
+        ServiceLocator.registerService(new ObjectMapper());
 
     }
 }

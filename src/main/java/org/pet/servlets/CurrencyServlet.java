@@ -29,26 +29,24 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-       this.currencyValidator = (Validator) ServiceLocator.getService(CurrencyValidator.class);
+        this.currencyValidator = (Validator) ServiceLocator.getService(CurrencyValidator.class);
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-        String code = req.getParameter("*");
-        currencyValidator.getCurrencyByCode(code);
-
-        String codeCurrency = req.getParameter("*");
-        if (codeCurrency.isEmpty()) {
-            throw new URLEncodingException("Код валюты отсутствует в адресе");
-
-        }
         try {
+            String code = req.getParameter("*");
+            currencyValidator.getCurrencyByCode(code);
+            String codeCurrency = req.getParameter("*");
+            if (codeCurrency.isEmpty()) {
+                throw new URLEncodingException("Код валюты отсутствует в адресе");
+            }
             JDBCCurrencyRepository instance = JDBCCurrencyRepository.getINSTANCE();
             Currency currency = instance.findByCode(codeCurrency);
             CurrencyDTO dto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
             JsonResponseBuilder.buildJsonResponse(resp, dto);
-        } catch (DaoException e) {
-            throw new CurrencyException(e.getMessage());
+        } catch (CurrencyException e) {
+            ExceptionHandlerUtil.executeException(resp, e);
         }
     }
 }

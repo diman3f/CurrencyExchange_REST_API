@@ -12,6 +12,7 @@ import java.io.IOException;
 
 public abstract class ExceptionHandler extends HttpServlet {
 
+
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
