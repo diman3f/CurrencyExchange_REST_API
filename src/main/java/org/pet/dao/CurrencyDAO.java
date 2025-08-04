@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CurrencyDao {
-    private static CurrencyDao INSTANCE = new CurrencyDao();
+public class CurrencyDAO implements CurrencyRepository {
+    private static CurrencyDAO INSTANCE = new CurrencyDAO();
 
     private static final String FIND_BY_CODE_SQL = """
             SELECT id, code, full_name, sign FROM Currencies 
@@ -35,14 +35,14 @@ public class CurrencyDao {
                 VALUES (?, ?, ?) 
             """;
 
-    private CurrencyDao() {
+    private CurrencyDAO() {
     }
 
-    public static CurrencyDao getINSTANCE() {
+    public static CurrencyDAO getINSTANCE() {
         return INSTANCE;
     }
 
-    public Optional<Currency> findByCode(String code) {
+    public Currency findByCode(String code) {
         try (Connection connection = ConnectionManager.getConnection();) {
             var prepareStatement = connection.prepareStatement(FIND_BY_CODE_SQL);
             prepareStatement.setString(1, code);
@@ -54,12 +54,12 @@ public class CurrencyDao {
                         .name(resultSet.getString("full_name"))
                         .sign(resultSet.getString("sign"))
                         .build();
-                return Optional.ofNullable(currency);
+                return currency;
             } else {
-                throw new CurrencyNotFoundException("Валюта не найдена в БД");
+                throw new CurrencyException("Currency is not found");
             }
         } catch (SQLException e) {
-            throw new DataBaseException("База данных не доступна");
+            throw new DataBaseException("Database is not available");
         }
     }
 
