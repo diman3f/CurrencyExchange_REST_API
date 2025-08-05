@@ -1,28 +1,26 @@
 package org.pet.servlets;
 
-import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.pet.context.ApplicationInitializer;
 import org.pet.context.ServiceLocator;
-import org.pet.dao.JDBCCurrencyRepository;
+import org.pet.dao.CurrencyDAO;
 import org.pet.dto.CurrencyDTO;
 import org.pet.entity.Currency;
 import org.pet.exception.CurrencyException;
-import org.pet.exception.DaoException;
-import org.pet.exception.URLEncodingException;
+import org.pet.exception.MissingRequiredValueException;
 import org.pet.filters.CurrencyValidator;
 import org.pet.filters.Validator;
 import org.pet.mapper.CurrencyMapper;
+import org.pet.utils.ExceptionHandlerUtil;
 import org.pet.utils.JsonResponseBuilder;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @WebServlet("/currency/*")
+
 public class CurrencyServlet extends HttpServlet {
 
     private Validator currencyValidator;
@@ -35,21 +33,24 @@ public class CurrencyServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         try {
-            String code = req.getParameter("*");
-            currencyValidator.getCurrencyByCode(code);
-            String codeCurrency = req.getParameter("*");
-            if (codeCurrency.isEmpty()) {
-                throw new URLEncodingException("Код валюты отсутствует в адресе");
+            String pathInfo = req.getPathInfo();
+            String[] pathParts = pathInfo.split("/");
+            if (pathParts.length == 2) {
+                String code = pathParts[1];
+                currencyValidator.getCurrencyByCode(code);
+                CurrencyDAO instance = CurrencyDAO.getINSTANCE();
+                Currency currency = instance.findByCode(code);
+                CurrencyDTO dto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
+                JsonResponseBuilder.buildJsonResponse(resp, dto);
+            } else {
+                throw new MissingRequiredValueException("Currency code is missing in the URL path");
             }
-            JDBCCurrencyRepository instance = JDBCCurrencyRepository.getINSTANCE();
-            Currency currency = instance.findByCode(codeCurrency);
-            CurrencyDTO dto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
-            JsonResponseBuilder.buildJsonResponse(resp, dto);
-        } catch (CurrencyException e) {
-            ExceptionHandlerUtil.executeException(resp, e);
+        } catch (RuntimeException e) {
+            ExceptionHandlerUtil.handleException(resp, e);
         }
     }
 }
+
 
 
 

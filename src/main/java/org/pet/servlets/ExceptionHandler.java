@@ -17,7 +17,7 @@ public abstract class ExceptionHandler extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             super.service(req, resp);
-        } catch (URLEncodingException e) {
+        } catch (MissingRequiredValueException e) {
             resp.setStatus(400);
             JsonResponseBuilder.buildExceptionResponse(resp, e);
         } catch (DataBaseException e) {
