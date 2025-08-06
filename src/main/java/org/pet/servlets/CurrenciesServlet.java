@@ -13,6 +13,7 @@ import org.pet.exception.*;
 import org.pet.filters.CurrencyValidator;
 import org.pet.filters.Validator;
 import org.pet.mapper.CurrencyMapper;
+import org.pet.utils.ExceptionHandlerUtil;
 import org.pet.utils.JsonResponseBuilder;
 
 import java.io.IOException;
@@ -39,35 +40,30 @@ public class CurrenciesServlet extends HttpServlet {
             List<CurrencyDTO> currencyDTOList = CurrencyMapper.INSTANCE.toCurrencyDTOList(currencies);
             JsonResponseBuilder.buildJsonResponse(resp, currencyDTOList);
         } catch (RuntimeException e) {
-            JsonResponseBuilder.buildExceptionResponse(resp, e);
+            ExceptionHandlerUtil.handleException(resp, e);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
         CurrencyDAO instance = CurrencyDAO.getINSTANCE();
 
         String name = req.getParameter("name");
         String code = req.getParameter("code");
         String sign = req.getParameter("sign");
-
-        currencyValidator.getCurrencyByCode(code);
-        if (name.isEmpty() || code.length() != 3 || sign.isEmpty()) {
-            throw new URLEncodingException("Отсутствует нужное поле формы");
-        }
+        currencyValidator.validateCurrencyAttributes(name, code, sign);
         CurrencyDTO dto = CurrencyDTO.builder()
                 .id(0)
                 .name(name)
                 .code(code)
                 .sign(sign)
                 .build();
-
-        try {
             Optional<Currency> currency = instance.createCurrency(dto);
             CurrencyDTO currencyDto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency.orElseThrow());
-            JsonResponseBuilder.buildJsonResponse(resp, currencyDto);
-        } catch (DaoException e) {
-            throw new CurrencyPairAlreadyExistsException(e.getMessage());
+            JsonResponseBuilder.buildJsonResponse(resp, currencyDto, 201);
+        } catch (RuntimeException e) {
+            ExceptionHandlerUtil.handleException(resp, e);
         }
     }
 }

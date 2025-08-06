@@ -9,8 +9,7 @@ import org.pet.context.ServiceLocator;
 import org.pet.dao.CurrencyDAO;
 import org.pet.dto.CurrencyDTO;
 import org.pet.entity.Currency;
-import org.pet.exception.CurrencyException;
-import org.pet.exception.MissingRequiredValueException;
+import org.pet.exception.ValidationException;
 import org.pet.filters.CurrencyValidator;
 import org.pet.filters.Validator;
 import org.pet.mapper.CurrencyMapper;
@@ -41,9 +40,9 @@ public class CurrencyServlet extends HttpServlet {
                 CurrencyDAO instance = CurrencyDAO.getINSTANCE();
                 Currency currency = instance.findByCode(code);
                 CurrencyDTO dto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
-                JsonResponseBuilder.buildJsonResponse(resp, dto);
+                JsonResponseBuilder.buildJsonResponse(resp, dto,200);
             } else {
-                throw new MissingRequiredValueException("Currency code is missing in the URL path");
+                throw new ValidationException("Currency code is missing in the URL path");
             }
         } catch (RuntimeException e) {
             ExceptionHandlerUtil.handleException(resp, e);

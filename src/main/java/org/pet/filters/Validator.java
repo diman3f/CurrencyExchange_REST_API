@@ -4,4 +4,5 @@ import org.pet.entity.Currency;
 
 public interface Validator {
     Currency getCurrencyByCode(String code);
+    void validateCurrencyAttributes(String name, String code, String sign);
 }

@@ -2,6 +2,7 @@ package org.pet.utils;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.pet.exception.DataBaseException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,7 +32,7 @@ public final class ConnectionManager {
         try {
             return ds.getConnection();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DataBaseException("Database is not available");
         }
     }
 }
