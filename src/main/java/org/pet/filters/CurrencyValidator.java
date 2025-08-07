@@ -41,8 +41,10 @@ public class CurrencyValidator implements Validator {
         }
         if (isValidCurrencyCode(code)) {
             Currency currencyUtil = Currency.getInstance(code);
+            String signUtil = currencyUtil.getSymbol();
             if (!currencyUtil.getSymbol().equals(sign))
-                throw new ValidationException("The sign is not a valid ISO 4217 currency sign");
+                throw new ValidationException(String.format("The sign is not a valid ISO 4217 currency, sign currency - %s", signUtil));
+
         }
     }
 

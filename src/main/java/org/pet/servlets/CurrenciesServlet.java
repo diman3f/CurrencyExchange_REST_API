@@ -47,20 +47,20 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-        CurrencyDAO instance = CurrencyDAO.getINSTANCE();
+            CurrencyDAO instance = CurrencyDAO.getINSTANCE();
 
-        String name = req.getParameter("name");
-        String code = req.getParameter("code");
-        String sign = req.getParameter("sign");
-        currencyValidator.validateCurrencyAttributes(name, code, sign);
-        CurrencyDTO dto = CurrencyDTO.builder()
-                .id(0)
-                .name(name)
-                .code(code)
-                .sign(sign)
-                .build();
-            Optional<Currency> currency = instance.createCurrency(dto);
-            CurrencyDTO currencyDto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency.orElseThrow());
+            String name = req.getParameter("name");
+            String code = req.getParameter("code");
+            String sign = req.getParameter("sign");
+            currencyValidator.validateCurrencyAttributes(name, code, sign);
+            CurrencyDTO dto = CurrencyDTO.builder()
+                    .id(null)
+                    .name(name)
+                    .code(code)
+                    .sign(sign)
+                    .build();
+            Currency currency = instance.createCurrency(dto);
+            CurrencyDTO currencyDto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
             JsonResponseBuilder.buildJsonResponse(resp, currencyDto, 201);
         } catch (RuntimeException e) {
             ExceptionHandlerUtil.handleException(resp, e);

@@ -56,7 +56,7 @@ public class CurrencyDAO implements CurrencyRepository {
                         .build();
                 return currency;
             } else {
-                throw new CurrencyException("Currency is not found");
+                throw new CurrencyNotFoundException("Currency is not found");
             }
         } catch (SQLException e) {
             throw new DataBaseException("Database is not available");
@@ -90,11 +90,10 @@ public class CurrencyDAO implements CurrencyRepository {
             var prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
             var resultSet = prepareStatement.executeQuery();
             while (resultSet.next()) {
-                var currency = creatCurrency(resultSet);
+                Optional <Currency> currency = creatCurrency(resultSet);
                 currencyEntities.add(currency.orElseThrow());
             }
         } catch (SQLException e) {
-            e.printStackTrace();
             throw new DataBaseException("Ошибка на сервере, повторите запрос позже");
         }
         return currencyEntities;
@@ -110,8 +109,7 @@ public class CurrencyDAO implements CurrencyRepository {
         return Optional.ofNullable(currency);
     }
 
-    public Optional<Currency> createCurrency(CurrencyDTO dto) {
-        Optional<Currency> currency = Optional.empty();
+    public Currency createCurrency(CurrencyDTO dto) {
         try (Connection connection = ConnectionManager.getConnection()) {
             var prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL);
             prepareStatement.setString(1, dto.getCode());
@@ -120,12 +118,11 @@ public class CurrencyDAO implements CurrencyRepository {
             int result = prepareStatement.executeUpdate();
             if (result != 0) {
                 setIdCreatCurrency(prepareStatement, dto);
-                currency = Optional.ofNullable(CurrencyMapper.INSTANCE.toCurrency(dto));
             }
         } catch (SQLException e) {
-            throw new DaoException("Валюта с таким кодом уже существует");
+            throw new CurrencyAlreadyExistsException("Currency code is already registered. Please use a different ISO 4217 code.");
         }
-        return currency;
+        return CurrencyMapper.INSTANCE.toCurrency(dto);
     }
 
 
@@ -135,7 +132,7 @@ public class CurrencyDAO implements CurrencyRepository {
             int id = rs.getInt(1);
             dto.setId(id);
         } else {
-            throw new RuntimeException("id валюты не найдено");
+            throw new DataBaseException("");
         }
     }
 }

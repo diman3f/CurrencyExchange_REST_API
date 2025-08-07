@@ -26,7 +26,7 @@ public abstract class ExceptionHandler extends HttpServlet {
         } catch (CurrencyException | ExchangeRateException e) {
             resp.setStatus(404);
             JsonResponseBuilder.buildExceptionResponse(resp, e);
-        } catch (CurrencyPairAlreadyExistsException e) {
+        } catch (CurrencyAlreadyExistsException e) {
             resp.setStatus(409);
             JsonResponseBuilder.buildExceptionResponse(resp, e);
         }
