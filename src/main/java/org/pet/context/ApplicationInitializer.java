@@ -14,6 +14,7 @@ public class ApplicationInitializer implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServiceLocator.registerService(new CurrencyValidator());
         ServiceLocator.registerService(new ObjectMapper());
+        ServiceLocator.registerService(new BuilderRequestDto());
 
     }
 }

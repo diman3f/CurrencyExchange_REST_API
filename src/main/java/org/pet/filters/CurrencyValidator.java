@@ -1,8 +1,10 @@
 package org.pet.filters;
 
+import org.pet.dto.ExchangeRateRequestServletDTO;
 import org.pet.exception.CurrencyException;
 import org.pet.exception.ValidationException;
 
+import java.math.BigDecimal;
 import java.util.Currency;
 
 public class CurrencyValidator implements Validator {
@@ -20,6 +22,20 @@ public class CurrencyValidator implements Validator {
             return currency;
         } catch (Exception e) {
             throw new ValidationException("The code is not a valid ISO 4217 currency code");
+        }
+    }
+
+
+    public void validateExchangeRateRequest(ExchangeRateRequestServletDTO dto) {
+
+        String baseCode = dto.getBaseCode();
+        String targetCode = dto.getTargetCode();
+        BigDecimal rate = dto.getRate();
+
+        if (baseCode != null && targetCode != null && dto.getRate() != null) {
+            isValidCurrencyCode(baseCode);
+            isValidCurrencyCode(targetCode);
+            validateRateExchangeRate(rate);
         }
     }
 
@@ -62,6 +78,13 @@ public class CurrencyValidator implements Validator {
     protected boolean isValidCurrencyFullName(String name) {
         String regex = "^[a-zA-Zа ]+$";
         return name.matches(regex);
+    }
+
+    protected void validateRateExchangeRate(BigDecimal rate) {
+        if (rate.doubleValue() < 0) {
+            throw new ValidationException("курс не можеть быть отрицательным");
+        }
+
     }
 
 }

@@ -9,6 +9,8 @@ import org.pet.dto.ExchangeRateResponseDTO;
 import org.pet.entity.Currency;
 import org.pet.entity.ExchangeRate;
 
+import java.math.BigDecimal;
+
 @Mapper
 public interface ExchangeRateMapper {
     ExchangeRateMapper INSTANCE = Mappers.getMapper(ExchangeRateMapper.class);
@@ -20,17 +22,12 @@ public interface ExchangeRateMapper {
     ExchangeRateResponseDTO toExchangeRateResponseDTO(Currency base, Currency target, ExchangeRate exchangeRate);
 
 
-    @Mapping(target = "baseCode", source = "parameter", qualifiedByName = "toBaseCodeCurrencyFromParameter")
-    @Mapping(target = "targetCode", source = "parameter", qualifiedByName = "toTargetCodeCurrencyFromParameter")
-    ExchangeRateRequestServletDTO toExchangeRateRequestDto(String parameter);
 
-    @Named("toBaseCodeCurrencyFromParameter")
-    default String getBaseCode(String parameter) {
-        return parameter.substring(1, 4);
-    }
+    ExchangeRateRequestServletDTO toExchangeRateRequestDto(String baseCode, String targetCode);
 
-    @Named("toTargetCodeCurrencyFromParameter")
-    default String getTargetCode(String parameter) {
-        return parameter.substring(4);
-    }
+    ExchangeRateRequestServletDTO toExchangeRateRequestDtoBuilder(String baseCode, String targetCode, BigDecimal rate);
+
+
+
+
 }

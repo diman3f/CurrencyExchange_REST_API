@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.pet.HttpStatus;
 import org.pet.context.ServiceLocator;
 import org.pet.dto.ExchangeRateRequestServletDTO;
 import org.pet.dto.ExchangeRateResponseDTO;
@@ -29,6 +30,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
     private Validator currencyValidator;
 
+
     @Override
     public void init() throws ServletException {
         this.currencyValidator = (Validator) ServiceLocator.getService(CurrencyValidator.class);
@@ -49,7 +51,6 @@ public class ExchangeRateServlet extends HttpServlet {
 
         try {
             String pathInfo = req.getPathInfo();
-
             List<String> codes = ValidatorURLUtil.getValidPairCurrencyPairFormat(pathInfo);
             String baseCode = codes.get(0);
             String targetCode = codes.get(1);
@@ -57,14 +58,11 @@ public class ExchangeRateServlet extends HttpServlet {
             currencyValidator.getCurrencyByCode(baseCode);
             currencyValidator.getCurrencyByCode(targetCode);
 
-            ExchangeRateRequestServletDTO dto = ExchangeRateRequestServletDTO.builder()
-                    .baseCode(baseCode)
-                    .targetCode(targetCode)
-                    .build();
-//            ExchangeRateRequestServletDTO dto = ExchangeRateMapper.INSTANCE.toExchangeRateRequestDto(сurrencyPair);
-            ExchangeRateResponseDTO exchangeRateDTO = ExchangeRateService.getINSTANCE().getExchangeRate(dto);
+
+            ExchangeRateRequestServletDTO requestDto = ExchangeRateMapper.INSTANCE.toExchangeRateRequestDto(baseCode, targetCode);
+            ExchangeRateResponseDTO exchangeRateDTO = ExchangeRateService.getINSTANCE().getExchangeRate(requestDto);
             JsonResponseBuilder.buildJsonResponse(resp, exchangeRateDTO, 200);
-        } catch (ValidationException e) {
+        } catch (RuntimeException e) {
             ExceptionHandlerUtil.handleException(resp, e);
         }
     }
@@ -72,17 +70,19 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String parameter = req.getPathInfo();
-        if (parameter.length() != 7) {
-            JsonResponseBuilder.buildExceptionResponse(resp, new ValidationException("Отсутствует нужное поле формы"));
-        }
+
+        String baseCode = req.getParameter("baseCurrencyCode");
+        String targetCode = req.getParameter("targetCurrencyCode");
+        currencyValidator.getCurrencyByCode(baseCode);
+        currencyValidator.getCurrencyByCode(targetCode);
+
         try {
-            ExchangeRateRequestServletDTO exchangeRateRequestServletDTO = ExchangeRateMapper.INSTANCE.toExchangeRateRequestDto(parameter);
+            ExchangeRateRequestServletDTO exchangeRateRequestServletDTO = ExchangeRateMapper.INSTANCE.toExchangeRateRequestDto(baseCode, targetCode);
             String s = req.getReader().readLine();
             double rate = Double.parseDouble(s.split("=", 2)[1]);
             exchangeRateRequestServletDTO.setRate(BigDecimal.valueOf(rate));
             ExchangeRateResponseDTO exchangeRateDTO = ExchangeRateService.getINSTANCE().updateExchangeRate(exchangeRateRequestServletDTO);
-            JsonResponseBuilder.buildJsonResponse(resp, exchangeRateDTO, 200);
+            JsonResponseBuilder.buildJsonResponse(resp, exchangeRateDTO, HttpStatus.CREATED.getCode());
         } catch (RuntimeException e) {
             resp.setStatus(404);
             JsonResponseBuilder.buildExceptionResponse(resp, new ExchangeRateException("Валютная пара отсутствует в базе данных"));
