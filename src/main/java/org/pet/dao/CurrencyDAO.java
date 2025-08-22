@@ -44,7 +44,7 @@ public class CurrencyDAO implements CurrencyRepository {
 
     public Currency findByCode(String code) {
         try (Connection connection = ConnectionManager.getConnection();) {
-            var prepareStatement = connection.prepareStatement(FIND_BY_CODE_SQL);
+            PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_CODE_SQL);
             prepareStatement.setString(1, code);
             ResultSet resultSet = prepareStatement.executeQuery();
             if (resultSet.next()) {
@@ -56,7 +56,7 @@ public class CurrencyDAO implements CurrencyRepository {
                         .build();
                 return currency;
             } else {
-                throw new CurrencyNotFoundException("Currency is not found");
+                throw new CurrencyNotFoundException(String.format("Валюта %s не найдена в базе данных", code));
             }
         } catch (SQLException e) {
             throw new DataBaseException("Database is not available");
@@ -65,7 +65,7 @@ public class CurrencyDAO implements CurrencyRepository {
 
     public Optional<Currency> findById(int id) {
         try (Connection connection = ConnectionManager.getConnection()) {
-            var prepareStatement = connection.prepareStatement(FIND_BY_ID_SQL);
+            PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_ID_SQL);
             prepareStatement.setInt(1, id);
             ResultSet resultSet = prepareStatement.executeQuery();
             if (resultSet.next()) {
@@ -87,8 +87,8 @@ public class CurrencyDAO implements CurrencyRepository {
     public List<Currency> findAllCurrencies() {
         List<Currency> currencyEntities = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
-            var prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
-            var resultSet = prepareStatement.executeQuery();
+           PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
+            ResultSet resultSet = prepareStatement.executeQuery();
             while (resultSet.next()) {
                 Optional <Currency> currency = creatCurrency(resultSet);
                 currencyEntities.add(currency.orElseThrow());
@@ -111,7 +111,7 @@ public class CurrencyDAO implements CurrencyRepository {
 
     public Currency createCurrency(CurrencyDTO dto) {
         try (Connection connection = ConnectionManager.getConnection()) {
-            var prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL);
+            PreparedStatement prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL);
             prepareStatement.setString(1, dto.getCode());
             prepareStatement.setString(2, dto.getName());
             prepareStatement.setString(3, dto.getSign());
