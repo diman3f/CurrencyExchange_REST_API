@@ -60,9 +60,9 @@ public class ExchangeRateDao {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_EXCHANGE_RATE_BY_CODES_SQL);
             prepareStatement.setString(BASE_CURRENCY_INDEX, baseCode);
             prepareStatement.setString(TARGET_CURRENCY_INDEX, targetCode);
-            ResultSet resultSet = prepareStatement.executeQuery();
-            if (resultSet.next()) {
-                ExchangeRate exchangeRate = createOfResultSet(resultSet);
+            ResultSet result = prepareStatement.executeQuery();
+            if (result.next()) {
+                ExchangeRate exchangeRate = createOfResultSet(result);
                return exchangeRate;
             } else throw new CurrencyNotFoundException("Обменный курс для пары валют не найден"); //todo приходится кидать not found чтобы не дублировать 404 в обработчике
         } catch (SQLException e) {
@@ -70,12 +70,12 @@ public class ExchangeRateDao {
         }
     }
 
-    private ExchangeRate createOfResultSet(ResultSet resultSet) throws SQLException {
+    private ExchangeRate createOfResultSet(ResultSet result) throws SQLException {
         ExchangeRate exchangeRate = ExchangeRate.builder()
-                .id(resultSet.getInt("id"))
-                .baseCurrencyId(resultSet.getInt("base_currency_id"))
-                .targetCurrencyId(resultSet.getInt("target_currency_id"))
-                .rate(resultSet.getBigDecimal("rate"))
+                .id(result.getInt("id"))
+                .baseCurrencyId(result.getInt("base_currency_id"))
+                .targetCurrencyId(result.getInt("target_currency_id"))
+                .rate(result.getBigDecimal("rate"))
                 .build();
         return exchangeRate;
     }
@@ -84,13 +84,13 @@ public class ExchangeRateDao {
         List<ExchangeRate> exchangeRate = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_EXCHANGE_RATE_SQL);
-            ResultSet resultSet = prepareStatement.executeQuery();
-            while (resultSet.next()) {
+            ResultSet result = prepareStatement.executeQuery();
+            while (result.next()) {
                 exchangeRate.add(ExchangeRate.builder()
-                        .id(resultSet.getInt("id"))
-                        .baseCurrencyId(resultSet.getInt("base_id"))
-                        .targetCurrencyId(resultSet.getInt("target_id"))
-                        .rate(resultSet.getBigDecimal("rate"))
+                        .id(result.getInt("id"))
+                        .baseCurrencyId(result.getInt("base_id"))
+                        .targetCurrencyId(result.getInt("target_id"))
+                        .rate(result.getBigDecimal("rate"))
                         .build());
             }
         } catch (SQLException e) {

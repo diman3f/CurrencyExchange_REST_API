@@ -20,8 +20,8 @@ public class ExchangeRatesServlet extends ExceptionHandler {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            List<ExchangeRateResponseDTO> dtoList = ExchangeRateService.getINSTANCE().getAllExchangeRate();
-            JsonResponseBuilder.buildJsonResponse(resp, dtoList);
+            List<ExchangeRateResponseDTO> dto = ExchangeRateService.getINSTANCE().getAllExchangeRate();
+            JsonResponseBuilder.buildJsonResponse(resp, dto);
         } catch (DataBaseException e) {
             throw new ExchangeRateException(e.getMessage());
         }

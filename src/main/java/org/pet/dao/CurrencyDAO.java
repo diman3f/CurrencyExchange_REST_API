@@ -46,13 +46,13 @@ public class CurrencyDAO implements CurrencyRepository {
         try (Connection connection = ConnectionManager.getConnection();) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_CODE_SQL);
             prepareStatement.setString(1, code);
-            ResultSet resultSet = prepareStatement.executeQuery();
-            if (resultSet.next()) {
+            ResultSet result = prepareStatement.executeQuery();
+            if (result.next()) {
                 Currency currency = Currency.builder()
-                        .id(resultSet.getInt("id"))
-                        .code(resultSet.getString("code"))
-                        .name(resultSet.getString("full_name"))
-                        .sign(resultSet.getString("sign"))
+                        .id(result.getInt("id"))
+                        .code(result.getString("code"))
+                        .name(result.getString("full_name"))
+                        .sign(result.getString("sign"))
                         .build();
                 return currency;
             } else {
@@ -67,13 +67,13 @@ public class CurrencyDAO implements CurrencyRepository {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_ID_SQL);
             prepareStatement.setInt(1, id);
-            ResultSet resultSet = prepareStatement.executeQuery();
-            if (resultSet.next()) {
+            ResultSet result = prepareStatement.executeQuery();
+            if (result.next()) {
                 Currency currency = Currency.builder()
-                        .id(resultSet.getInt("id"))
-                        .code(resultSet.getString("code"))
-                        .name(resultSet.getString("full_name"))
-                        .sign(resultSet.getString("sign"))
+                        .id(result.getInt("id"))
+                        .code(result.getString("code"))
+                        .name(result.getString("full_name"))
+                        .sign(result.getString("sign"))
                         .build();
                 return Optional.ofNullable(currency);
             } else {
@@ -88,9 +88,9 @@ public class CurrencyDAO implements CurrencyRepository {
         List<Currency> currencyEntities = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
            PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
-            ResultSet resultSet = prepareStatement.executeQuery();
-            while (resultSet.next()) {
-                Optional <Currency> currency = creatCurrency(resultSet);
+            ResultSet result = prepareStatement.executeQuery();
+            while (result.next()) {
+                Optional <Currency> currency = creatCurrency(result);
                 currencyEntities.add(currency.orElseThrow());
             }
         } catch (SQLException e) {
@@ -99,12 +99,12 @@ public class CurrencyDAO implements CurrencyRepository {
         return currencyEntities;
     }
 
-    private Optional<Currency> creatCurrency(ResultSet resultSet) throws SQLException {
+    private Optional<Currency> creatCurrency(ResultSet result) throws SQLException {
         Currency currency = Currency.builder()
-                .id(resultSet.getInt("id"))
-                .code(resultSet.getString("code"))
-                .name(resultSet.getString("full_name"))
-                .sign(resultSet.getString("sign"))
+                .id(result.getInt("id"))
+                .code(result.getString("code"))
+                .name(result.getString("full_name"))
+                .sign(result.getString("sign"))
                 .build();
         return Optional.ofNullable(currency);
     }
