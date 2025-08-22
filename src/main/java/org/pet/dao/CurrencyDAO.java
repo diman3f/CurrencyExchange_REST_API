@@ -117,7 +117,7 @@ public class CurrencyDAO implements CurrencyRepository {
             prepareStatement.setString(3, dto.getSign());
             int result = prepareStatement.executeUpdate();
             if (result != 0) {
-                setIdCreatCurrency(prepareStatement, dto);
+                setIdCreateCurrency(prepareStatement, dto);
             }
         } catch (SQLException e) {
             throw new CurrencyAlreadyExistsException("Currency code is already registered. Please use a different ISO 4217 code.");
@@ -126,7 +126,7 @@ public class CurrencyDAO implements CurrencyRepository {
     }
 
 
-    private void setIdCreatCurrency(PreparedStatement ps, CurrencyDTO dto) throws SQLException {
+    private void setIdCreateCurrency(PreparedStatement ps, CurrencyDTO dto) throws SQLException {
         ResultSet rs = ps.getGeneratedKeys();
         if (rs.next()) {
             int id = rs.getInt(1);
