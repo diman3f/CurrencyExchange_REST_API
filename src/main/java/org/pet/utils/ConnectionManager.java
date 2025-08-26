@@ -2,6 +2,7 @@ package org.pet.utils;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.pet.exception.DataBaseConnectException;
 import org.pet.exception.DataBaseException;
 
 import java.sql.Connection;
@@ -16,6 +17,7 @@ public final class ConnectionManager {
     }
 
     private ConnectionManager() {
+        throw new ArrayStoreException("Нельзя создать объект статического класса");
     }
 
     private static void initConnectionPool() {
@@ -32,7 +34,7 @@ public final class ConnectionManager {
         try {
             return ds.getConnection();
         } catch (SQLException e) {
-            throw new DataBaseException("Database is not available");
+            throw new DataBaseConnectException("Database is not available");
         }
     }
 }
