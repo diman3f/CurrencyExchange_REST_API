@@ -10,9 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class CurrencyDAO implements CurrencyRepository {
     private static CurrencyDAO INSTANCE = new CurrencyDAO();
@@ -35,6 +33,11 @@ public class CurrencyDAO implements CurrencyRepository {
                 VALUES (?, ?, ?) 
             """;
 
+    private static final int CODE_INDEX = 1;
+    private static final int NAME_INDEX = 2;
+    private static final int SIGN_INDEX = 3;
+    private static final int ID_INDEX = 1;
+
     private CurrencyDAO() {
     }
 
@@ -45,15 +48,10 @@ public class CurrencyDAO implements CurrencyRepository {
     public Currency findByCode(String code) {
         try (Connection connection = ConnectionManager.getConnection();) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_CODE_SQL);
-            prepareStatement.setString(1, code);
+            prepareStatement.setString(CODE_INDEX, code);
             ResultSet result = prepareStatement.executeQuery();
             if (result.next()) {
-                Currency currency = Currency.builder()
-                        .id(result.getInt("id"))
-                        .code(result.getString("code"))
-                        .name(result.getString("full_name"))
-                        .sign(result.getString("sign"))
-                        .build();
+                Currency currency = creatCurrency(result);
                 return currency;
             } else {
                 throw new CurrencyNotFoundException(String.format("Валюта %s не найдена в базе данных", code));
@@ -62,11 +60,10 @@ public class CurrencyDAO implements CurrencyRepository {
             throw new DataBaseException("Database is not available");
         }
     }
-
-    public Optional<Currency> findById(int id) {
+    public Currency findById(int id) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_ID_SQL);
-            prepareStatement.setInt(1, id);
+            prepareStatement.setInt(ID_INDEX, id);
             ResultSet result = prepareStatement.executeQuery();
             if (result.next()) {
                 Currency currency = Currency.builder()
@@ -99,24 +96,14 @@ public class CurrencyDAO implements CurrencyRepository {
         return currencyEntities;
     }
 
-    private Optional<Currency> creatCurrency(ResultSet result) throws SQLException {
-        Currency currency = Currency.builder()
-                .id(result.getInt("id"))
-                .code(result.getString("code"))
-                .name(result.getString("full_name"))
-                .sign(result.getString("sign"))
-                .build();
-        return Optional.ofNullable(currency);
-    }
-
     public Currency createCurrency(CurrencyDTO dto) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL);
-            prepareStatement.setString(1, dto.getCode());
-            prepareStatement.setString(2, dto.getName());
-            prepareStatement.setString(3, dto.getSign());
+            prepareStatement.setString(CODE_INDEX, dto.getCode());
+            prepareStatement.setString(NAME_INDEX, dto.getName());
+            prepareStatement.setString(SIGN_INDEX, dto.getSign());
             int result = prepareStatement.executeUpdate();
-            if (result != 0) {
+            if (!isResultIsEmpty(result)) {
                 setIdCreateCurrency(prepareStatement, dto);
             }
         } catch (SQLException e) {
@@ -129,7 +116,7 @@ public class CurrencyDAO implements CurrencyRepository {
     private void setIdCreateCurrency(PreparedStatement ps, CurrencyDTO dto) throws SQLException {
         ResultSet rs = ps.getGeneratedKeys();
         if (rs.next()) {
-            int id = rs.getInt(1);
+            int id = rs.getInt(ID_INDEX);
             dto.setId(id);
         } else {
             throw new DataBaseException("");
