@@ -6,7 +6,7 @@ import lombok.*;
 @Getter
 @Setter
 public class CurrencyRequestDto {
-    String name;
-    String code;
-    String sign;
+    private String name;
+    private String code;
+    private String sign;
 }
