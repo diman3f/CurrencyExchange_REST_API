@@ -66,29 +66,24 @@ public class CurrencyDAO implements CurrencyRepository {
             prepareStatement.setInt(ID_INDEX, id);
             ResultSet result = prepareStatement.executeQuery();
             if (result.next()) {
-                Currency currency = Currency.builder()
-                        .id(result.getInt("id"))
-                        .code(result.getString("code"))
-                        .name(result.getString("full_name"))
-                        .sign(result.getString("sign"))
-                        .build();
-                return Optional.ofNullable(currency);
+                Currency currency = creatCurrency(result);
+                return currency;
             } else {
-                throw new CurrencyException("Валюта не найдена");
+                throw new CurrencyNotFoundException(String.format("Валюта по id=%d не найдена в базе данных", id));
             }
         } catch (SQLException e) {
-            throw new DaoException("Ошибка обращения к базе данных");
+            throw new DataBaseException("Ошибка обращения к базе данных");
         }
     }
 
-    public List<Currency> findAllCurrencies() {
-        List<Currency> currencyEntities = new ArrayList<>();
+    public Set<Currency> findAllCurrencies() {
+        Set<Currency> currencyEntities = new HashSet<>();
         try (Connection connection = ConnectionManager.getConnection()) {
            PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
             ResultSet result = prepareStatement.executeQuery();
             while (result.next()) {
-                Optional <Currency> currency = creatCurrency(result);
-                currencyEntities.add(currency.orElseThrow());
+                Currency currency = creatCurrency(result);
+                currencyEntities.add(currency);
             }
         } catch (SQLException e) {
             throw new DataBaseException("Ошибка на сервере, повторите запрос позже");
@@ -112,6 +107,19 @@ public class CurrencyDAO implements CurrencyRepository {
         return CurrencyMapper.INSTANCE.toCurrency(dto);
     }
 
+    private boolean isResultIsEmpty(int result) {
+        return result == 0;
+    }
+
+    private Currency creatCurrency(ResultSet result) throws SQLException {
+        Currency currency = Currency.builder()
+                .id(result.getInt("id"))
+                .code(result.getString("code"))
+                .name(result.getString("full_name"))
+                .sign(result.getString("sign"))
+                .build();
+        return currency;
+    }
 
     private void setIdCreateCurrency(PreparedStatement ps, CurrencyDTO dto) throws SQLException {
         ResultSet rs = ps.getGeneratedKeys();
