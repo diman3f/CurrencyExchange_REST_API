@@ -2,6 +2,7 @@ package org.pet.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.pet.HttpStatus;
 import org.pet.context.ServiceLocator;
 import org.pet.exception.*;
 
@@ -18,7 +19,7 @@ public final class ExceptionHandlerUtil {
     }
 
     public static void handleException(HttpServletResponse response, RuntimeException exception) {
-        
+
         if (exception instanceof CurrencyNotFoundException) {
             buildExceptionResponse(response, exception, HttpStatus.NOT_FOUND);
         }
@@ -34,16 +35,20 @@ public final class ExceptionHandlerUtil {
         }
     }
 
-
-    public static void buildExceptionResponse(HttpServletResponse response, RuntimeException e, int codeException) {
-        Map<String, String> errorMessage = Map.of("message", e.getMessage());
-        response.setStatus(codeException);
+    public static void buildExceptionResponse(HttpServletResponse response, RuntimeException e, HttpStatus httpStatus) {
+        Map<String, String> errorMessage = createMessageResponse(e.getMessage());
+        response.setStatus(httpStatus.getCode());
         try (PrintWriter writer = response.getWriter();) {
             writer.write(mapper.writeValueAsString(errorMessage));
         } catch (IOException exception) {
             e.printStackTrace();
         }
     }
+
+    private static Map<String, String> createMessageResponse(String message) {
+        return Map.of("message", message);
+    }
+
 }
 
 
