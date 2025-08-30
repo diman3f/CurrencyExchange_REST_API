@@ -1,4 +1,4 @@
-package org.pet.filters;
+package org.pet.context;
 
 import org.pet.dto.ExchangeRateRequestServletDTO;
 import org.pet.entity.Currency;
