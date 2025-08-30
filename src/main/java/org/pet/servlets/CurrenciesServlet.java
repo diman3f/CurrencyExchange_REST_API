@@ -35,10 +35,9 @@ public class CurrenciesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             CurrencyDAO instance = CurrencyDAO.getINSTANCE();
-            List<Currency> currencies = new ArrayList<>();
-            currencies.addAll(instance.findAllCurrencies());
-            List<CurrencyDTO> currencyDTOList = CurrencyMapper.INSTANCE.toCurrencyDTOList(currencies);
-            JsonResponseBuilder.buildJsonResponse(resp, currencyDTOList);
+            Set<Currency> allCurrencies = instance.findAllCurrencies();
+            List<CurrencyDTO> currencyDTO = CurrencyMapper.INSTANCE.toCurrencyDTOList(allCurrencies);
+            JsonResponseBuilder.buildJsonResponse(resp, currencyDTO, HttpStatus.OK);
         } catch (RuntimeException e) {
             ExceptionHandlerUtil.handleException(resp, e);
         }
