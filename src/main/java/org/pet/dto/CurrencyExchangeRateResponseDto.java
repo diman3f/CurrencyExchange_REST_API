@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Builder
 @Getter
 @Setter
-public class CurrencyExchangeRateResponseDto extends BaseDto {
+public class CurrencyExchangeRateResponseDto {
 
     private Currency baseCurrency;
     private Currency targetCurrency;

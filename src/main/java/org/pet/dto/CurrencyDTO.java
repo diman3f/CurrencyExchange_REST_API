@@ -5,7 +5,7 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
-public class CurrencyDTO extends BaseDto {
+public class CurrencyDTO {
     Integer id;
     String name;
     String code;

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Builder
 @Getter
 @Setter
-public class ExchangeRateRequestServletDTO extends BaseDto{
+public class ExchangeRateRequestServletDTO {
     private String baseCode;
     private String targetCode;
     private BigDecimal rate;
