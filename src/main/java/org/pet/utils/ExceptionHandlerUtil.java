@@ -20,17 +20,17 @@ public final class ExceptionHandlerUtil {
     public static void handleException(HttpServletResponse response, RuntimeException exception) {
         
         if (exception instanceof CurrencyNotFoundException) {
-            buildExceptionResponse(response, exception,404);
+            buildExceptionResponse(response, exception, HttpStatus.NOT_FOUND);
         }
         if (exception instanceof CurrencyAlreadyExistsException) {
-            buildExceptionResponse(response, exception,409);
+            buildExceptionResponse(response, exception, HttpStatus.CONFLICT);
         }
         if (exception instanceof ValidationException) {
-            buildExceptionResponse(response, exception,400);
+            buildExceptionResponse(response, exception, HttpStatus.BAD_REQUEST);
         }
 
         if (exception instanceof DataBaseException) {
-            buildExceptionResponse(response, exception,500);
+            buildExceptionResponse(response, exception, HttpStatus.INTERNAL_SERVER_ERROR); //todo Ошибку 500 нужно писать в логи она не обрабатывается
         }
     }
 

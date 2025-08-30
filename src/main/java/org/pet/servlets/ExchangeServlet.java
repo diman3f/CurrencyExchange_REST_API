@@ -24,8 +24,7 @@ public class ExchangeServlet extends ExceptionHandler {
             double amount = Double.parseDouble(req.getParameter("amount"));
             CurrencyExchangeRateRequestDto dto = CurrencyExchangeMapper.INSTANCE.toDto(baseCurrency, targetCurrency, amount);
             CurrencyExchangeRateResponseDto currencyExchangeRateResponseDto = ExchangeRateService.getINSTANCE().executeExchangeCurrency(dto);
-
-            JsonResponseBuilder.buildJsonResponse(resp, currencyExchangeRateResponseDto);
+            JsonResponseBuilder.buildJsonResponse(resp, currencyExchangeRateResponseDto, HttpStatus.OK);
         } catch (RuntimeException e) {
             throw new ExchangeRateException(e.getMessage());
         }

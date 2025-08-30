@@ -5,11 +5,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.pet.HttpStatus;
 import org.pet.context.ServiceLocator;
 import org.pet.dao.CurrencyDAO;
 import org.pet.dto.CurrencyDTO;
+import org.pet.dto.CurrencyRequestDto;
 import org.pet.entity.Currency;
-import org.pet.exception.*;
 import org.pet.filters.CurrencyValidator;
 import org.pet.filters.Validator;
 import org.pet.mapper.CurrencyMapper;
@@ -17,9 +18,8 @@ import org.pet.utils.ExceptionHandlerUtil;
 import org.pet.utils.JsonResponseBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
@@ -47,20 +47,14 @@ public class CurrenciesServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             CurrencyDAO instance = CurrencyDAO.getINSTANCE();
-
             String name = req.getParameter("name");
             String code = req.getParameter("code");
             String sign = req.getParameter("sign");
             currencyValidator.validateCurrencyAttributes(name, code, sign);
-            CurrencyDTO dto = CurrencyDTO.builder()
-                    .id(null)
-                    .name(name)
-                    .code(code)
-                    .sign(sign)
-                    .build();
+            CurrencyRequestDto dto = CurrencyMapper.INSTANCE.toCurrencyRequestDTO(name, code, sign);
             Currency currency = instance.createCurrency(dto);
             CurrencyDTO currencyDto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
-            JsonResponseBuilder.buildJsonResponse(resp, currencyDto, 201);
+            JsonResponseBuilder.buildJsonResponse(resp, currencyDto, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             ExceptionHandlerUtil.handleException(resp, e);
         }

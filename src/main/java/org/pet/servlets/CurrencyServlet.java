@@ -40,7 +40,7 @@ public class CurrencyServlet extends HttpServlet {
                 CurrencyDAO instance = CurrencyDAO.getINSTANCE();
                 Currency currency = instance.findByCode(code);
                 CurrencyDTO dto = CurrencyMapper.INSTANCE.toCurrencyDTO(currency);
-                JsonResponseBuilder.buildJsonResponse(resp, dto,200);
+                JsonResponseBuilder.buildJsonResponse(resp, dto, HttpStatus.OK);
             } else {
                 throw new ValidationException("Currency code is missing in the URL path");
             }

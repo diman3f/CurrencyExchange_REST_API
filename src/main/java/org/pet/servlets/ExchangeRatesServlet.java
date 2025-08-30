@@ -21,7 +21,7 @@ public class ExchangeRatesServlet extends ExceptionHandler {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             List<ExchangeRateResponseDTO> dto = ExchangeRateService.getINSTANCE().getAllExchangeRate();
-            JsonResponseBuilder.buildJsonResponse(resp, dto);
+            JsonResponseBuilder.buildJsonResponse(resp, dto, HttpStatus.OK);
         } catch (DataBaseException e) {
             throw new ExchangeRateException(e.getMessage());
         }
@@ -32,11 +32,9 @@ public class ExchangeRatesServlet extends ExceptionHandler {
         try {
             ExchangeRateRequestServletDTO dto = dtoExchangeRateRequest(req);
             ExchangeRateResponseDTO exchangeRateResponseDTO = ExchangeRateService.getINSTANCE().saveExchangeRate(dto);
-            JsonResponseBuilder.buildJsonResponse(resp, exchangeRateResponseDTO);
-        } catch (CurrencyNotFoundException e) {
-            throw new CurrencyException("Одна (или обе) валюта из валютной пары не существует в БД");
-        }
-    }
+            JsonResponseBuilder.buildJsonResponse(resp, exchangeRateResponseDTO, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            ExceptionHandlerUtil.handleException(resp, e);
 
     private ExchangeRateRequestServletDTO dtoExchangeRateRequest(HttpServletRequest req) {
         String codeBase = req.getParameter("baseCurrencyCode");
