@@ -19,8 +19,8 @@ public interface CurrencyMapper {
     @Mapping(target = "sign", source = "signCurrency")
     CurrencyRequestDto toCurrencyRequestDTO(String nameCurrency, String codeCurrency, String signCurrency);
     CurrencyDTO toCurrencyDTO(Currency currency);
-    List<CurrencyDTO> toCurrencyDTOList(List<Currency> currencies);
-    Currency toCurrency(CurrencyDTO currencyDTO);
+    List<CurrencyDTO> toCurrencyDTOList(Set<Currency> currencies);
+    Currency toCurrency(CurrencyRequestDto currencyDTO);
 
 
 
