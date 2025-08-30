@@ -2,20 +2,34 @@ package org.pet.servlets;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.pet.HttpStatus;
+import org.pet.context.BuilderRequestDto;
+import org.pet.context.ServiceLocator;
 import org.pet.dto.ExchangeRateRequestServletDTO;
 import org.pet.dto.ExchangeRateResponseDTO;
 import org.pet.exception.*;
+import org.pet.filters.CurrencyValidator;
+import org.pet.filters.Validator;
 import org.pet.services.ExchangeRateService;
+import org.pet.utils.ExceptionHandlerUtil;
 import org.pet.utils.JsonResponseBuilder;
-
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 @WebServlet("/exchangeRates")
-public class ExchangeRatesServlet extends ExceptionHandler {
+public class ExchangeRatesServlet extends HttpServlet {
+
+    private Validator currencyValidator;
+    private BuilderRequestDto builderRequestDto;
+
+    @Override
+    public void init() throws ServletException {
+        this.currencyValidator = (Validator) ServiceLocator.getService(CurrencyValidator.class);
+        this.builderRequestDto = (BuilderRequestDto) ServiceLocator.getService(BuilderRequestDto.class);
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -28,26 +42,14 @@ public class ExchangeRatesServlet extends ExceptionHandler {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            ExchangeRateRequestServletDTO dto = dtoExchangeRateRequest(req);
+            ExchangeRateRequestServletDTO dto = builderRequestDto.createExchangeRateDtoFromParameter(req);
+            currencyValidator.validateExchangeRateRequestGetMethod(dto);
             ExchangeRateResponseDTO exchangeRateResponseDTO = ExchangeRateService.getINSTANCE().saveExchangeRate(dto);
             JsonResponseBuilder.buildJsonResponse(resp, exchangeRateResponseDTO, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             ExceptionHandlerUtil.handleException(resp, e);
-
-    private ExchangeRateRequestServletDTO dtoExchangeRateRequest(HttpServletRequest req) {
-        String codeBase = req.getParameter("baseCurrencyCode");
-        String codeTarget = req.getParameter("targetCurrencyCode");
-        BigDecimal rate = BigDecimal.valueOf(Double.parseDouble(req.getParameter("rate")));
-        String rateLength = String.valueOf(rate.doubleValue());
-        if (codeBase.length() == 3 && codeTarget.length() == 3 && rate.doubleValue() > 0 && rateLength.length() < 9) {
-            return ExchangeRateRequestServletDTO.builder()
-                    .baseCode(codeBase)
-                    .targetCode(codeTarget)
-                    .rate(rate)
-                    .build();
         }
-        throw new URLEncodingException("Отсутствует нужное поле формы");
     }
 }
