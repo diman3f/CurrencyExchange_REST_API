@@ -3,7 +3,6 @@ package org.pet.utils;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.pet.exception.DataBaseConnectException;
-import org.pet.exception.DataBaseException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,6 +10,8 @@ import java.sql.SQLException;
 public final class ConnectionManager {
     private static HikariConfig config = new HikariConfig();
     private static HikariDataSource ds;
+    private static final String PATH = "\\exchangeDB\\Currencies.db";
+    private static final int maximumPoolSize = 15;
 
     static {
         initConnectionPool();
@@ -21,12 +22,10 @@ public final class ConnectionManager {
     }
 
     private static void initConnectionPool() {
-//        String root = System.getProperty("catalina.base");
-//        String rootPath = root + "\\exchangeDB\\Currencies.db";
-//        config.setJdbcUrl("jdbc:sqlite:" + rootPath);
-        String testURL = "C:\\work\\apache-tomcat-10.1.34\\exchangeDB\\Currencies.db";
-        config.setJdbcUrl("jdbc:sqlite:"+testURL);
-        config.setMaximumPoolSize(15);
+        String root = System.getProperty("catalina.base");
+        String rootPath = root + PATH;
+        config.setJdbcUrl("jdbc:sqlite:" + rootPath);
+        config.setMaximumPoolSize(maximumPoolSize);
         ds = new HikariDataSource(config);
     }
 
