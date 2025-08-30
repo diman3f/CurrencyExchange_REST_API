@@ -15,14 +15,14 @@ public class BuilderRequestDto {
         String baseCode = req.getParameter("baseCurrencyCode");
         String targetCode = req.getParameter("targetCurrencyCode");
         BigDecimal rate = BigDecimal.valueOf(Double.parseDouble(req.getParameter("rate")));
-        return ExchangeRateMapper.INSTANCE.toExchangeRateRequestDtoBuilder(baseCode, targetCode, rate);
+        return ExchangeRateMapper.INSTANCE.toExchangeRate(baseCode, targetCode, rate);
     }
 
     public ExchangeRateRequestServletDTO createExchangeRateDtoFromPathInfo(HttpServletRequest req) throws IOException {
         ExchangeRateRequestServletDTO exchangeRateDto = createExchangeRateDtoGetMethod(req);
         String body = req.getReader().readLine();
         BigDecimal rate = BigDecimal.valueOf(Double.parseDouble(body.split("=", 2)[1]));
-        return ExchangeRateMapper.INSTANCE.toExchangeRateRequestDtoBuilder(exchangeRateDto.getBaseCode(), exchangeRateDto.getTargetCode(), rate);
+        return ExchangeRateMapper.INSTANCE.toExchangeRate(exchangeRateDto.getBaseCode(), exchangeRateDto.getTargetCode(), rate);
     }
 
     public ExchangeRateRequestServletDTO createExchangeRateDtoGetMethod(HttpServletRequest req) {
@@ -30,6 +30,6 @@ public class BuilderRequestDto {
         List<String> codes = ValidatorURLUtil.getValidPairCurrencyPairFormat(pathInfo);
         String baseCode = codes.get(0);
         String targetCode = codes.get(1);
-        return ExchangeRateMapper.INSTANCE.toExchangeRateRequestDtoBuilder(baseCode, targetCode);
+        return ExchangeRateMapper.INSTANCE.toExchangeRate(baseCode, targetCode);
     }
 }
