@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.pet.HttpStatus;
 import org.pet.context.ServiceLocator;
 import org.pet.dao.CurrencyDAO;
 import org.pet.dto.CurrencyDTO;
