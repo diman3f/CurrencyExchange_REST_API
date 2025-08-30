@@ -7,15 +7,14 @@ import org.pet.utils.ConnectionManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class ExchangeRateDao {
 
     private static final ExchangeRateDao INSTANCE = new ExchangeRateDao();
     private static final String FIND_EXCHANGE_RATE_BY_CODES_SQL = """
             SELECT exchangeRate.id AS id,
-                   base.id AS base_currency_id,
-                   target.id AS target_currency_id,
+                   base.id AS base_id,
+                   target.id AS target_id,
                    Rate AS rate
             FROM exchangeRate exchangeRate
                 JOIN Currencies base ON exchangeRate.BaseCurrencyId = base.id
@@ -43,7 +42,10 @@ public class ExchangeRateDao {
                       
               """;
 
-
+    private static final int BASE_CURRENCY_INDEX = 1;
+    private static final int TARGET_CURRENCY_INDEX = 2;
+    private static final int RATE_CURRENCY_INDEX = 3;
+    private static final int ID_CURRENCY_INDEX = 4;
 
     private ExchangeRateDao() {
     }
@@ -53,8 +55,6 @@ public class ExchangeRateDao {
     }
 
     public ExchangeRate findExchangeRate(String baseCode, String targetCode) {
-        final int BASE_CURRENCY_INDEX = 1;
-        final int TARGET_CURRENCY_INDEX= 2;
 
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_EXCHANGE_RATE_BY_CODES_SQL);
@@ -63,21 +63,12 @@ public class ExchangeRateDao {
             ResultSet result = prepareStatement.executeQuery();
             if (result.next()) {
                 ExchangeRate exchangeRate = createOfResultSet(result);
-               return exchangeRate;
-            } else throw new CurrencyNotFoundException("Обменный курс для пары валют не найден"); //todo приходится кидать not found чтобы не дублировать 404 в обработчике
+                return exchangeRate;
+            } else
+                throw new CurrencyNotFoundException("Обменный курс для пары валют не найден"); //todo приходится кидать not found чтобы не дублировать 404 в обработчике
         } catch (SQLException e) {
-           throw  new DaoException("База данных не доступна");
+            throw new DaoException("База данных не доступна");
         }
-    }
-
-    private ExchangeRate createOfResultSet(ResultSet result) throws SQLException {
-        ExchangeRate exchangeRate = ExchangeRate.builder()
-                .id(result.getInt("id"))
-                .baseCurrencyId(result.getInt("base_currency_id"))
-                .targetCurrencyId(result.getInt("target_currency_id"))
-                .rate(result.getBigDecimal("rate"))
-                .build();
-        return exchangeRate;
     }
 
     public List<ExchangeRate> findAllExchangeRate() {
@@ -86,12 +77,7 @@ public class ExchangeRateDao {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_EXCHANGE_RATE_SQL);
             ResultSet result = prepareStatement.executeQuery();
             while (result.next()) {
-                exchangeRate.add(ExchangeRate.builder()
-                        .id(result.getInt("id"))
-                        .baseCurrencyId(result.getInt("base_id"))
-                        .targetCurrencyId(result.getInt("target_id"))
-                        .rate(result.getBigDecimal("rate"))
-                        .build());
+                exchangeRate.add(createOfResultSet(result));
             }
         } catch (SQLException e) {
             throw new CurrencyNotFoundException("Обменный курс по указанной паре валют отсутствует");
@@ -99,12 +85,22 @@ public class ExchangeRateDao {
         return exchangeRate;
     }
 
+    private ExchangeRate createOfResultSet(ResultSet result) throws SQLException {
+        ExchangeRate exchangeRate = ExchangeRate.builder()
+                .id(result.getInt("id"))
+                .baseCurrencyId(result.getInt("base_id"))
+                .targetCurrencyId(result.getInt("target_id"))
+                .rate(result.getBigDecimal("rate"))
+                .build();
+        return exchangeRate;
+    }
+
     public ExchangeRate saveExchangeRate(ExchangeRate exchangeRate) {
         try (Connection connection = ConnectionManager.getConnection();) {
             PreparedStatement prepareStatement = connection.prepareStatement(CREATE_EXCHANGE_RATE_SQL, Statement.RETURN_GENERATED_KEYS);
-            prepareStatement.setInt(1, exchangeRate.getBaseCurrencyId());
-            prepareStatement.setInt(2, exchangeRate.getTargetCurrencyId());
-            prepareStatement.setBigDecimal(3, exchangeRate.getRate());
+            prepareStatement.setInt(BASE_CURRENCY_INDEX, exchangeRate.getBaseCurrencyId());
+            prepareStatement.setInt(TARGET_CURRENCY_INDEX, exchangeRate.getTargetCurrencyId());
+            prepareStatement.setBigDecimal(RATE_CURRENCY_INDEX, exchangeRate.getRate());
             prepareStatement.executeUpdate();
             ResultSet generatedKeys = prepareStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -119,10 +115,10 @@ public class ExchangeRateDao {
     public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(UPDATE_EXCHANGE_RATE_SQL);
-            prepareStatement.setInt(1, exchangeRate.getBaseCurrencyId());
-            prepareStatement.setInt(2, exchangeRate.getTargetCurrencyId());
-            prepareStatement.setBigDecimal(3, exchangeRate.getRate());
-            prepareStatement.setInt(4, exchangeRate.getId());
+            prepareStatement.setInt(BASE_CURRENCY_INDEX, exchangeRate.getBaseCurrencyId());
+            prepareStatement.setInt(TARGET_CURRENCY_INDEX, exchangeRate.getTargetCurrencyId());
+            prepareStatement.setBigDecimal(RATE_CURRENCY_INDEX, exchangeRate.getRate());
+            prepareStatement.setInt(ID_CURRENCY_INDEX, exchangeRate.getId());
             prepareStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DataBaseException("Ошибка доступка к базе данных");
