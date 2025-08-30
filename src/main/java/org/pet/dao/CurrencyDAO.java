@@ -1,8 +1,10 @@
 package org.pet.dao;
 
-import org.pet.dto.CurrencyDTO;
+import org.pet.dto.CurrencyRequestDto;
 import org.pet.entity.Currency;
-import org.pet.exception.*;
+import org.pet.exception.CurrencyAlreadyExistsException;
+import org.pet.exception.CurrencyNotFoundException;
+import org.pet.exception.DataBaseException;
 import org.pet.mapper.CurrencyMapper;
 import org.pet.utils.ConnectionManager;
 
@@ -10,7 +12,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CurrencyDAO implements CurrencyRepository {
     private static CurrencyDAO INSTANCE = new CurrencyDAO();
@@ -60,6 +63,7 @@ public class CurrencyDAO implements CurrencyRepository {
             throw new DataBaseException("Database is not available");
         }
     }
+
     public Currency findById(int id) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(FIND_BY_ID_SQL);
@@ -79,7 +83,7 @@ public class CurrencyDAO implements CurrencyRepository {
     public Set<Currency> findAllCurrencies() {
         Set<Currency> currencyEntities = new HashSet<>();
         try (Connection connection = ConnectionManager.getConnection()) {
-           PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
+            PreparedStatement prepareStatement = connection.prepareStatement(FIND_ALL_CURRENCIES_SQL);
             ResultSet result = prepareStatement.executeQuery();
             while (result.next()) {
                 Currency currency = creatCurrency(result);
@@ -91,24 +95,19 @@ public class CurrencyDAO implements CurrencyRepository {
         return currencyEntities;
     }
 
-    public Currency createCurrency(CurrencyDTO dto) {
+    public Currency createCurrency(CurrencyRequestDto dto) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(CREATE_CURRENCY_SQL);
             prepareStatement.setString(CODE_INDEX, dto.getCode());
             prepareStatement.setString(NAME_INDEX, dto.getName());
             prepareStatement.setString(SIGN_INDEX, dto.getSign());
-            int result = prepareStatement.executeUpdate();
-            if (!isResultIsEmpty(result)) {
-                setIdCreateCurrency(prepareStatement, dto);
-            }
+            Currency currency = CurrencyMapper.INSTANCE.toCurrency(dto);
+            prepareStatement.executeUpdate();
+            setIdCreateCurrency(prepareStatement, currency);
+            return currency;
         } catch (SQLException e) {
-            throw new CurrencyAlreadyExistsException("Currency code is already registered. Please use a different ISO 4217 code.");
+            throw new CurrencyAlreadyExistsException(String.format("Валюта с кодом %s уже существует в базе данных", dto.getCode()));
         }
-        return CurrencyMapper.INSTANCE.toCurrency(dto);
-    }
-
-    private boolean isResultIsEmpty(int result) {
-        return result == 0;
     }
 
     private Currency creatCurrency(ResultSet result) throws SQLException {
@@ -121,13 +120,13 @@ public class CurrencyDAO implements CurrencyRepository {
         return currency;
     }
 
-    private void setIdCreateCurrency(PreparedStatement ps, CurrencyDTO dto) throws SQLException {
+    private void setIdCreateCurrency(PreparedStatement ps, Currency currency) throws SQLException {
         ResultSet rs = ps.getGeneratedKeys();
         if (rs.next()) {
             int id = rs.getInt(ID_INDEX);
-            dto.setId(id);
+            currency.setId(id);
         } else {
-            throw new DataBaseException("");
+            throw new DataBaseException("База данных не доступна");
         }
     }
 }
